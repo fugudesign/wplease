@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fugudesign/wpmator.git"
+    "url": "git+https://github.com/fugudesign/wplease.git"
   },
   "author": "Vincent Lalanne <info@fugu.fr>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/fugudesign/wpmator/issues"
+    "url": "https://github.com/fugudesign/wplease/issues"
   },
-  "homepage": "https://github.com/fugudesign/wpmator#readme",
+  "homepage": "https://github.com/fugudesign/wplease#readme",
   "dependencies": {
     "async": "^2.6.0",
     "child_process": "^1.0.2",
