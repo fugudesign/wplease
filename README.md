@@ -28,6 +28,9 @@ To build a Wordpress instance with WPlease, you must have a Wordpress operating 
 * [Node JS](https://nodejs.org/)
 * [WP-CLI](https://wp-cli.org/)
 
+### Caution
+> For existant repo please backup your files and database before using WPlease.
+
 ### Installing
 
 You need to install this module as a global module.
