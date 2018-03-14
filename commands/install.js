@@ -85,15 +85,35 @@ installCommand.prototype.run = function(env) {
       utils.bot('Creating database...');
       var dbCheck = wp('db check', {async: true});
       dbCheck.on('close', function(code, signal) {
+        // If the database already exists
         if (code === 0) {
-          wp('db drop', {flags: {'yes': true}});
+          enquirer.ask([
+            {type: 'confirm', name: 'override_db', message: 'Replace existant database', 'default': false}
+          ])
+          .then(function(answers) {
+            // Override the database if user ask yes
+            if (answers.override_db) {
+              wp('db drop', {flags: {'yes': true}});
+              createDB();
+            } else {
+              console.log('');
+              callback(null, inputs);
+            }
+          });
         }
-        var db = wp('db create', {async: true, verbose: true});
-        db.on('close', function(code, signal){
-          if (code === 0) {
-            callback(null, inputs);
-          }
-        });
+        // If the data base doen't exist 
+        else {
+          createDB();
+        }
+
+        function createDB() {
+          var db = wp('db create', {async: true, verbose: true});
+          db.on('close', function(code, signal){
+            if (code === 0) {
+              callback(null, inputs);
+            }
+          });
+        }
       });
     },
 
@@ -138,6 +158,9 @@ installCommand.prototype.run = function(env) {
             if (answers) {
               console.log('');
               
+              // Autoinject ungitignore for theme and plugin
+              utils.addThemeToGitignore(env.cwd, answers.slug);
+
               wp(`scaffold _s ${answers.slug}`, {verbose: true,
                 flags: {
                   'theme_name': answers.name,
@@ -172,10 +195,11 @@ installCommand.prototype.run = function(env) {
       wp('plugin uninstall hello.php', {verbose: true});
       wp('plugin uninstall akismet', {verbose: true});
       // Remove default themes
-      // Remove default themes
-      wp('theme delete twentyfifteen', {verbose: true});
-      wp('theme delete twentysixteen', {verbose: true});
-      wp('theme delete twentyseventeen', {verbose: true});
+      if (inputs.generate_theme) {
+        wp('theme delete twentyfifteen', {verbose: true});
+        wp('theme delete twentysixteen', {verbose: true});
+        wp('theme delete twentyseventeen', {verbose: true});
+      }
       // Remove default posts
       wp('post delete 1', {verbose: true, flags: { force: true }})
       wp('post delete 2', {verbose: true, flags: { force: true }})
