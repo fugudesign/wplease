@@ -1,13 +1,28 @@
 # WPlease
 
-Automate Wordpress generation and development from your dev repository.
+![GitHub package version](https://img.shields.io/github/package-json/v/badges/shields.svg?style=flat-square)
+![npm](https://img.shields.io/npm/v/npm.svg?style=flat-square)
+![node](https://img.shields.io/node/v/passport.svg?style=flat-square)
+
+## Features
+
+WPlease is a toolkit for Wordpress development that allow you to:
+
+> Build a Wordpress working instance from scratch in on command line
+
+> Build a preconfigured Wordpress working instance from your github repo and only keep your pecific code
+
+> Remove all Wordpress files except your specific code
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+To build a Wordpress instance with WPlease, you must have a Wordpress operating environment and some additional libraries.
 
 ### Prerequisites
 
+* Apache web server (2 recommended)
+* PHP 5.6 or higher (7.0 recommended)
+* MySQL server 5.x with a database user (or MariaDB)
 * [Node JS](https://nodejs.org/)
 * [WP-CLI](https://wp-cli.org/)
 
@@ -19,22 +34,18 @@ You need to install this module as a global module.
 npm install -g wplease
 ```
 
-## Usage
+### Usage
 
-Create your project directory.
+Create a basic Wordpress install from scratch.
 ```
 mkdir my-project
 cd my-project
-```
-
-### Basic install
-
-```
 wplease install
 ```
 
-### Advanced install
+## Advanced usage
 
+### Initialize your project
 
 ```
 wplease init
@@ -42,6 +53,8 @@ wplease init
 This command create into your project: 
 - The `wpleasefile.js` to customize your Wordpress installation 
 - The `.gitignore` to ignore the whole wordpress code.
+
+### Customize your Wordpress config
 
 Then edit the `wpleasefile.js` to customize your Wordpress install.
 For example, your can simply specify a custom [plugins](https://wordpress.org/plugins/) list:
@@ -54,14 +67,37 @@ module.exports = {
 };
 ```
 
+### Build Wordpress in your project
+
 Then you can run your custom install.
 
 ```
 wplease install
 ```
 
-The script will ask you about the database and site creditentials, and your Wordpress will be quickly ready to use.
+## Script prompts
+
+During installing, the script will ask you about the database and site creditentials. Your Wordpress instance will be quickly ready to use.
+
+```
+...
+
+Defining Wordpress settings...
+
+? Project name        my-website
+? Database name       mywebsite
+? Database prefix     wp_
+? Database user       root
+? Database password   [hidden]
+? Site url            my-website.loc
+? Site title          My Website
+? Admin login         admin
+? Admin email         admin@my-website.com
+? Admin password      [hidden]
+
+...
+```
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
