@@ -3,6 +3,8 @@
 ![GitHub package version](https://img.shields.io/github/package-json/v/badges/shields.svg?style=flat-square)
 ![npm](https://img.shields.io/npm/v/npm.svg?style=flat-square)
 ![node](https://img.shields.io/node/v/passport.svg?style=flat-square)
+[![GitHub license](https://img.shields.io/github/license/fugudesign/wplease.svg?style=flat-square)](https://github.com/fugudesign/wplease/blob/master/LICENSE)
+
 
 ## Features
 
