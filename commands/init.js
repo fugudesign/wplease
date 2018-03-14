@@ -4,7 +4,13 @@
 var utils = require('../lib/utils');
 var fs = require('fs');
 var path = require('path');
+var Enquirer = require('enquirer');
+var each = require('sync-each');
 var { COPYFILE_EXCL } = fs.constants;
+
+// create a new prompt instance
+var enquirer = new Enquirer();
+enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
 function initCommand() {}
@@ -18,17 +24,52 @@ initCommand.prototype.run = function(env) {
   // Generate init files in project
   // template files in init dir must begin by an underscore
   // (ie. _index.html)
-  fs.readdirSync(path.resolve(`${path.dirname(__dirname)}/init/`)).forEach(file => {
-    fs.copyFile(
-      path.resolve(`${path.dirname(__dirname)}/init/${file}`), 
-      path.resolve(`${env.cwd}/${file.substr(1)}`), 
-      COPYFILE_EXCL,
-      function(err) {
-        if (err) console.log(`Info: ${file.substr(1)} already exits in project.`);
-        else console.log(`Success: ${file.substr(1)} was generated in project.`);
+  var files = fs.readdirSync(path.resolve(`${path.dirname(__dirname)}/init/`));
+  var i = 0;
+  each(files, 
+    function (file, next) {
+      i++;
+      var template = path.resolve(`${path.dirname(__dirname)}/init/${file}`);
+      var filename = file.substr(1);
+      var copy = path.resolve(`${env.cwd}/${filename}`);
+      
+      // If file already exits, ask for override
+      if (fs.existsSync(copy)) {
+        enquirer.ask({
+          type: 'confirm', 
+          name: `override_init_file_${i}`, 
+          message: `Override existing ${filename}`, 
+          default: false
+        })
+        .then(function(answers) {
+          if (answers[`override_init_file_${i}`]) {
+            copyInitFile(template, copy, filename, next);
+          } else {
+            console.log(`Success: existing ${filename} kept in project.`);
+            console.log('');
+            next();
+          }
+        });
+      } else {
+        copyInitFile(template, copy, filename, next);
       }
-    );
-  });
+    },
+    function (err,transformedItems) {
+      if (err) console.log(err);
+    } 
+  );
+
+  // Function to copy template file to destination
+  function copyInitFile(template, copy, filename, next) {
+    fs.copyFile(template, copy, function(err) {
+      if (err) console.log(err);
+      else {
+        console.log(`Success: ${filename} was generated in project.`);
+        console.log('');
+      }
+      next();
+    });
+  }
   
 }
 

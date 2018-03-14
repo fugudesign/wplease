@@ -30,7 +30,6 @@ wp-admin/
 wp-content/
 wp-includes/
 
-/readme.html
 /index.php
 /xmlrpc.php
 /wp-*.php
