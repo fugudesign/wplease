@@ -1,0 +1,41 @@
+# Ignore node modules
+node_modules
+
+# Optional npm cache directory
+.npm
+
+# dotenv environment variables file
+.env
+
+# Ignore automatically generated cruft
+.sass-cache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Operating system files
+.Spotlight-V100
+.Trashes
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Thumbs.db
+
+# WordPress
+wp-admin/
+wp-content/
+wp-includes/
+
+/readme.html
+/index.php
+/xmlrpc.php
+/wp-*.php
+/.htaccess
+/license.txt
+/readme.html
+/sitemap.xml
+/sitemap.xml.gz

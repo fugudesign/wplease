@@ -1,0 +1,34 @@
+{
+  "name": "wplease",
+  "version": "1.0.0",
+  "description": "Automate Wordpress generation and development from your dev repository.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "wplease": "./bin/wplease.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fugudesign/wpmator.git"
+  },
+  "author": "Vincent Lalanne <info@fugu.fr>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fugudesign/wpmator/issues"
+  },
+  "homepage": "https://github.com/fugudesign/wpmator#readme",
+  "dependencies": {
+    "async": "^2.6.0",
+    "child_process": "^1.0.2",
+    "colors": "^1.2.1",
+    "enquirer": "^1.0.3",
+    "liftoff": "^2.5.0",
+    "minimist": "^1.2.0",
+    "npm": "^5.7.1",
+    "prompt-confirm": "^1.2.0",
+    "prompt-password": "^1.2.0",
+    "wp-astro": "^1.1.7"
+  }
+}
