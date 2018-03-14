@@ -13,29 +13,22 @@ initCommand.prototype.run = function(env) {
   // Get the settings
   var settings = utils.getSettings(env.configPath);
 
-  utils.bot('Generating wpleasefile and gitignore files...');
+  utils.bot('Generating init files in project...');
 
-  // Generate wpleasefile in project
-  fs.copyFile(
-    path.resolve(`${path.dirname(__dirname)}/lib/wpleasefile.js`), 
-    path.resolve(`${env.cwd}/wpleasefile.js`), 
-    COPYFILE_EXCL,
-    function(err) {
-      if (err) console.log('Info: wpleasefile already exits in project.');
-      else console.log('Success: wpleasefile was generated in project.');
-    }
-  );
-
-  // Generate gitignore file in project
-  fs.copyFile(
-    path.resolve(`${path.dirname(__dirname)}/lib/gitignore.txt`), 
-    path.resolve(`${env.cwd}/.gitignore`), 
-    COPYFILE_EXCL,
-    function(err) {
-      if (err) console.log('Info: .gitnignore already exits in project.');
-      else console.log('Success: .gitignore was generated in project.');
-    }
-  );
+  // Generate init files in project
+  // template files in init dir must begin by an underscore
+  // (ie. _index.html)
+  fs.readdirSync(path.resolve(`${path.dirname(__dirname)}/init/`)).forEach(file => {
+    fs.copyFile(
+      path.resolve(`${path.dirname(__dirname)}/init/${file}`), 
+      path.resolve(`${env.cwd}/${file.substr(1)}`), 
+      COPYFILE_EXCL,
+      function(err) {
+        if (err) console.log(`Info: ${file.substr(1)} already exits in project.`);
+        else console.log(`Success: ${file.substr(1)} was generated in project.`);
+      }
+    );
+  });
   
 }
 

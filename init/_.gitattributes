@@ -1,0 +1,64 @@
+# INFO Source code #
+####################
+*.htm text eol=lf
+*.HTM text eol=lf
+*.html text eol=lf
+*.HTML text eol=lf
+*.php text eol=lf
+*.PHP text eol=lf
+*.css text eol=lf
+*.CSS text eol=lf
+*.js text eol=lf
+*.JS text eol=lf
+*.json text eol=lf
+*.JSON text eol=lf
+# NOTE Shell scripts always need Unix style line feeds
+*.sh text eol=lf
+*.SH text eol=lf
+
+# INFO Documents #
+##################
+*.doc binary diff=astextplain
+*.DOC binary diff=astextplain
+*.docx binary diff=astextplain
+*.DOCX binary diff=astextplain
+*.dot binary diff=astextplain
+*.DOT binary diff=astextplain
+*.pdf binary diff=astextplain
+*.PDF binary diff=astextplain
+*.rtf binary diff=astextplain
+*.RTF binary diff=astextplain
+*.odt binary diff=odf
+*.ODT binary diff=odf
+*.ods binary diff=odf
+*.ODS binary diff=odf
+*.odp binary diff=odf
+*.ODP binary diff=odf
+
+# INFO Graphics #
+#################
+*.png binary
+*.PNG binary
+*.jpg binary
+*.JPG binary
+*.jpeg binary
+*.JPEG binary
+*.gif binary
+*.GIF binary
+*.ico binary
+*.ICO binary
+*.svg text eol=lf
+*.SVG text eol=lf
+*.svgz binary
+*.SVGZ binary
+
+# INFO Fonts #
+##############
+*.ttf binary
+*.TTF binary
+*.otf binary
+*.OTF binary
+*.eot binary
+*.EOT binary
+*.woff binary
+*.WOFF binary
