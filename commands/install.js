@@ -141,37 +141,67 @@ installCommand.prototype.run = function(env) {
 
     function (inputs, callback) {
       utils.bot('Custom theme...');
+
+      // Ask for generate theme
       enquirer.ask([
-        {type: 'confirm', name: 'generate_theme', message: 'Generate a custom theme'}
+        {type: 'confirm', name: 'generate_theme', message: 'Custom theme'}
       ])
       .then(function(answers) {
         if (answers.generate_theme) {
-          enquirer.ask([
-            {type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project},
-            {type: 'input', name: 'name', message: 'Theme name', 'default': inputs.title},
-            {type: 'input', name: 'author', message: 'Theme author'},
-            {type: 'input', name: 'author_uri', message: 'Theme author URI'},
-            {type: 'confirm', name: 'sassify', message: 'Sassify theme'},
-            {type: 'confirm', name: 'activate', message: 'Activate theme'}
-          ])
-          .then(function(answers) {
-            if (answers) {
-              console.log('');
-              
-              // Autoinject ungitignore for theme and plugin
-              utils.addThemeToGitignore(env.cwd, answers.slug);
 
-              wp(`scaffold _s ${answers.slug}`, {verbose: true,
-                flags: {
-                  'theme_name': answers.name,
-                  'author': answers.author,
-                  'author_uri': answers.author_uri,
-                  'sassify': answers.sassify,
-                  'activate': answers.activate
-                }
-              });
-              callback(null, answers);
-            }
+          // Ask for the theme slug
+          enquirer.ask([{type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project}])
+          .then(function(answers) {
+
+            // Check if the theme already exists
+            var exists = wp(`theme is-installed ${answers.slug}`, {async: true});
+            exists.on('close', function (code, signal) {
+              if (code === 0) {
+                console.log('Warning:', `theme ${answers.slug} already exists.`);
+
+                // Ask for activate the theme
+                enquirer.ask([{type: 'confirm', name: 'activate', message: 'Activate theme'}])
+                  .then(function(answers) {
+                    if (answers.activate) {
+                      var activate = wp(`theme activate ${answers.slug}`, {async: true, verbose: true});
+                      activate.on('close', function (code, signal) {
+                        callback(null, answers);
+                      })
+                    }
+                  });
+              }
+              // If theme not exists, ask for theme info to generate it 
+              else {
+                var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1);
+                enquirer.ask([
+                  {type: 'input', name: 'name', message: 'Theme name', 'default': name},
+                  {type: 'input', name: 'author', message: 'Theme author'},
+                  {type: 'input', name: 'author_uri', message: 'Theme author URI'},
+                  {type: 'confirm', name: 'sassify', message: 'Sassify theme'},
+                  {type: 'confirm', name: 'activate', message: 'Activate theme'}
+                ])
+                .then(function(answers) {
+                  if (answers) {
+                    console.log('');
+                    
+                    // Autoinject ungitignore for theme and plugin
+                    utils.addThemeToGitignore(env.cwd, answers.slug);
+    
+                    // Generate new theme
+                    wp(`scaffold _s ${answers.slug}`, {verbose: true,
+                      flags: {
+                        'theme_name': answers.name,
+                        'author': answers.author,
+                        'author_uri': answers.author_uri,
+                        'sassify': answers.sassify,
+                        'activate': answers.activate
+                      }
+                    });
+                    callback(null, answers);
+                  }
+                });
+              }
+            });
           });
         } else {
           callback(null, answers);
