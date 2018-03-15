@@ -28,6 +28,8 @@ node_modules
 # Optional IDEs
 .idea/
 .vscode/
+*.sublime-workspace
+*.sublime-project
 
 # Optional npm cache directory
 .npm
