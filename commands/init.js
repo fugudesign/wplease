@@ -21,9 +21,6 @@ initCommand.prototype.run = function(env) {
 
   utils.bot('Generating init files in project...');
 
-  // utils.addThemeToGitignore(env.cwd, 'lavergne');
-  // process.exit(0);
-
   // Generate init files in project
   // template files in init dir must begin by an underscore
   // (ie. _index.html)
