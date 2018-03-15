@@ -165,6 +165,10 @@ installCommand.prototype.run = function(env) {
                     if (answers.activate) {
                       var activate = wp(`theme activate ${answers.slug}`, {async: true, verbose: true});
                       activate.on('close', function (code, signal) {
+                        
+                        // Autoinject ungitignore for theme and plugin
+                        utils.addThemeToGitignore(env.cwd, answers.slug);
+
                         callback(null, answers);
                       })
                     }
