@@ -6,6 +6,8 @@ var wp = require('wp-astro');
 var Enquirer = require('enquirer');
 var async = require('async');
 
+var initScript = require('./init');
+
 // create a new prompt instance
 var enquirer = new Enquirer();
 enquirer.register('password', require('prompt-password'));
@@ -18,6 +20,23 @@ installCommand.prototype.run = function(env) {
   var settings = utils.getSettings(env.configPath);
 
   async.waterfall([
+
+    function (callback) {
+      enquirer.ask({type: 'confirm', name: 'init', message: 'Initialize project', 'default': false})
+        .then(function(answers) {
+          if (answers.init) {
+            console.log('');
+            initScript.run(env)
+              .then((res) => {
+                callback(null);
+              })
+              .catch((err) => {
+                console.log(err);
+                callback(null);
+              });
+          }
+        });
+    },
 
     function (callback) {
       utils.bot('Getting Wordpress...');
