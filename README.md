@@ -16,6 +16,8 @@ WPlease is a toolkit for Wordpress development that allow you to:
 
 > Remove all Wordpress files except your specific code
 
+> Generate a custom theme and plugin on install and autoignore it
+
 ## Getting Started
 
 To build a Wordpress instance with WPlease, you must have a Wordpress operating environment and some additional libraries.
