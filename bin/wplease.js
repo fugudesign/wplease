@@ -57,7 +57,7 @@ cli.launch({
 function handleArguments(env) {
 
   if (!env.configPath) {
-    env.configPath = path.resolve(`${path.dirname(__dirname)}/lib/wpleasefile.js`);
+    env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.js`);
   }
 
   // Chdir before requiring wpleasefile to make sure

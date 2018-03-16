@@ -6,6 +6,8 @@ var wp = require('wp-astro');
 var Enquirer = require('enquirer');
 var async = require('async');
 
+var initScript = require('./init');
+
 // create a new prompt instance
 var enquirer = new Enquirer();
 enquirer.register('password', require('prompt-password'));
@@ -18,6 +20,23 @@ installCommand.prototype.run = function(env) {
   var settings = utils.getSettings(env.configPath);
 
   async.waterfall([
+
+    function (callback) {
+      enquirer.ask({type: 'confirm', name: 'init', message: 'Initialize project', 'default': false})
+        .then(function(answers) {
+          if (answers.init) {
+            console.log('');
+            initScript.run(env)
+              .then((res) => {
+                callback(null);
+              })
+              .catch((err) => {
+                console.log(err);
+                callback(null);
+              });
+          }
+        });
+    },
 
     function (callback) {
       utils.bot('Getting Wordpress...');
@@ -85,15 +104,35 @@ installCommand.prototype.run = function(env) {
       utils.bot('Creating database...');
       var dbCheck = wp('db check', {async: true});
       dbCheck.on('close', function(code, signal) {
+        // If the database already exists
         if (code === 0) {
-          wp('db drop', {flags: {'yes': true}});
+          enquirer.ask([
+            {type: 'confirm', name: 'override_db', message: 'Replace existant database', 'default': false}
+          ])
+          .then(function(answers) {
+            // Override the database if user ask yes
+            if (answers.override_db) {
+              wp('db drop', {flags: {'yes': true}});
+              createDB();
+            } else {
+              console.log('');
+              callback(null, inputs);
+            }
+          });
         }
-        var db = wp('db create', {async: true, verbose: true});
-        db.on('close', function(code, signal){
-          if (code === 0) {
-            callback(null, inputs);
-          }
-        });
+        // If the data base doen't exist 
+        else {
+          createDB();
+        }
+
+        function createDB() {
+          var db = wp('db create', {async: true, verbose: true});
+          db.on('close', function(code, signal){
+            if (code === 0) {
+              callback(null, inputs);
+            }
+          });
+        }
       });
     },
 
@@ -121,34 +160,146 @@ installCommand.prototype.run = function(env) {
 
     function (inputs, callback) {
       utils.bot('Custom theme...');
+
+      // Ask for generate theme
       enquirer.ask([
-        {type: 'confirm', name: 'generate_theme', message: 'Generate a custom theme'}
+        {type: 'confirm', name: 'generate_plugin', message: 'Custom theme'}
       ])
       .then(function(answers) {
-        if (answers.generate_theme) {
-          enquirer.ask([
-            {type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project},
-            {type: 'input', name: 'name', message: 'Theme name', 'default': inputs.title},
-            {type: 'input', name: 'author', message: 'Theme author'},
-            {type: 'input', name: 'author_uri', message: 'Theme author URI'},
-            {type: 'confirm', name: 'sassify', message: 'Sassify theme'},
-            {type: 'confirm', name: 'activate', message: 'Activate theme'}
-          ])
+        if (answers.generate_plugin) {
+
+          // Ask for the theme slug
+          enquirer.ask([{type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project}])
           .then(function(answers) {
-            if (answers) {
-              console.log('');
-              
-              wp(`scaffold _s ${answers.slug}`, {verbose: true,
-                flags: {
-                  'theme_name': answers.name,
-                  'author': answers.author,
-                  'author_uri': answers.author_uri,
-                  'sassify': answers.sassify,
-                  'activate': answers.activate
-                }
-              });
-              callback(null, answers);
-            }
+
+            // Check if the theme already exists
+            var exists = wp(`theme is-installed ${answers.slug}`, {async: true});
+            exists.on('close', function (code, signal) {
+              if (code === 0) {
+                console.log('Warning:', `theme ${answers.slug} already exists.`);
+
+                // Ask for activate the theme
+                enquirer.ask([{type: 'confirm', name: 'activate_theme', message: 'Activate theme'}])
+                  .then(function(answers) {
+                    if (answers.activate_theme) {
+                      var activate = wp(`theme activate ${answers.slug}`, {async: true, verbose: true});
+                      activate.on('close', function (code, signal) {
+                        
+                        // Autoinject ungitignore for theme
+                        utils.ignoreExtension(env.cwd, answers.slug, 'theme');
+
+                        callback(null, answers);
+                      })
+                    }
+                  });
+              }
+              // If theme not exists, ask for theme info to generate it 
+              else {
+                var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1);
+                enquirer.ask([
+                  {type: 'input', name: 'theme_name', message: 'Theme name', 'default': name},
+                  {type: 'input', name: 'theme_author', message: 'Theme author'},
+                  {type: 'input', name: 'theme_author_uri', message: 'Theme author URI'},
+                  {type: 'confirm', name: 'theme_sassify', message: 'Sassify theme'},
+                  {type: 'confirm', name: 'theme_activate', message: 'Activate theme'}
+                ])
+                .then(function(answers) {
+                  if (answers) {
+                    console.log('');
+                    
+                    // Autoinject ungitignore for theme
+                    utils.ignoreExtension(env.cwd, answers.slug, 'theme');
+    
+                    // Generate new theme
+                    wp(`scaffold _s ${answers.slug}`, {verbose: true,
+                      flags: {
+                        'theme_name': answers.theme_name,
+                        'author': answers.theme_author,
+                        'author_uri': answers.theme_author_uri,
+                        'sassify': answers.theme_sassify,
+                        'activate': answers.theme_activate
+                      }
+                    });
+                    callback(null, answers);
+                  }
+                });
+              }
+            });
+          });
+        } else {
+          callback(null, answers);
+        }
+      });
+    },
+
+    function (inputs, callback) {
+      utils.bot('Custom plugin...');
+
+      // Ask for generate plugin
+      enquirer.ask([
+        {type: 'confirm', name: 'generate_plugin', message: 'Custom plugin'}
+      ])
+      .then(function(answers) {
+        if (answers.generate_plugin) {
+
+          // Ask for the plugin slug
+          enquirer.ask([{type: 'input', name: 'slug', message: 'Plugin slug', 'default': inputs.project}])
+          .then(function(answers) {
+
+            // Check if the plugin already exists
+            var exists = wp(`plugin is-installed ${answers.slug}`, {async: true});
+            exists.on('close', function (code, signal) {
+              if (code === 0) {
+                console.log('Warning:', `plugin ${answers.slug} already exists.`);
+
+                // Ask for activate the plugin
+                enquirer.ask([{type: 'confirm', name: 'activate_plugin', message: 'Activate plugin'}])
+                  .then(function(answers) {
+                    if (answers.activate_plugin) {
+                      var activate = wp(`plugin activate ${answers.slug}`, {async: true, verbose: true});
+                      activate.on('close', function (code, signal) {
+                        
+                        // Autoinject ungitignore for plugin
+                        utils.ignoreExtension(env.cwd, answers.slug, 'plugin');
+
+                        callback(null, answers);
+                      })
+                    }
+                  });
+              }
+              // If theme not exists, ask for theme info to generate it 
+              else {
+                var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1);
+                enquirer.ask([
+                  {type: 'input', name: 'plugin_name', message: 'Plugin name', 'default': name},
+                  {type: 'input', name: 'plugin_description', message: 'Plugin description', 'default': `Custom plugin for ${name}`},
+                  {type: 'input', name: 'plugin_author', message: 'Plugin author'},
+                  {type: 'input', name: 'plugin_author_uri', message: 'Plugin author URI'},
+                  {type: 'confirm', name: 'plugin_activate', message: 'Activate theme'}
+                ])
+                .then(function(answers) {
+                  if (answers) {
+                    console.log('');
+                    
+                    // Autoinject ungitignore for plugin
+                    utils.ignoreExtension(env.cwd, answers.slug, 'plugin');
+    
+                    // Generate new theme
+                    wp(`scaffold plugin ${answers.slug}`, {verbose: true,
+                      flags: {
+                        'plugin_name': answers.plugin_name,
+                        'plugin_description': answers.plugin_description,
+                        'plugin_author': answers.plugin_author,
+                        'plugin_author_uri': answers.plugin_author_uri,
+                        'activate': answers.plugin_activate,
+                        'skip-tests': true
+                      }
+                    });
+                    callback(null, answers);
+                  }
+                });
+              }
+            });
           });
         } else {
           callback(null, answers);
@@ -172,10 +323,11 @@ installCommand.prototype.run = function(env) {
       wp('plugin uninstall hello.php', {verbose: true});
       wp('plugin uninstall akismet', {verbose: true});
       // Remove default themes
-      // Remove default themes
-      wp('theme delete twentyfifteen', {verbose: true});
-      wp('theme delete twentysixteen', {verbose: true});
-      wp('theme delete twentyseventeen', {verbose: true});
+      if (inputs.generate_plugin) {
+        wp('theme delete twentyfifteen', {verbose: true});
+        wp('theme delete twentysixteen', {verbose: true});
+        wp('theme delete twentyseventeen', {verbose: true});
+      }
       // Remove default posts
       wp('post delete 1', {verbose: true, flags: { force: true }})
       wp('post delete 2', {verbose: true, flags: { force: true }})
