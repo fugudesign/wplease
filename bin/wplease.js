@@ -4,7 +4,6 @@
 var utils = require('../lib/utils');
 var Liftoff = require('liftoff');
 var path = require('path');
-const argv = require('minimist')(process.argv.slice(2));
 var exec = require('child_process').exec;
 
 // Set env var for ORIGINAL cwd
@@ -25,11 +24,11 @@ process.once('exit', function(code) {
 });
 
 // Parse those args m8
-var cliPackage = require('../package');
+var argv = utils.cliArgs();
+var command = utils.cliCommand();
+var flags = utils.cliFlags();
+var shoulddebug = flags.verbose;
 var debug = utils.debug;
-var args = argv._;
-var command = args.length ? args[0] : 'default';
-var shoulddebug = argv.verbose;
 
 if (!shoulddebug) {
   debug = function() {}
@@ -55,7 +54,7 @@ cli.launch({
 }, handleArguments);
 
 function handleArguments(env) {
-
+  
   // Use the default wpleasefile.js if local one not exists
   if (!env.configPath) {
     env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.js`);

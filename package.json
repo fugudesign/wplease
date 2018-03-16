@@ -23,6 +23,7 @@
     "async": "^2.6.0",
     "child_process": "^1.0.2",
     "colors": "^1.2.1",
+    "commander": "^2.15.0",
     "enquirer": "^1.0.3",
     "liftoff": "^2.5.0",
     "minimist": "^1.2.0",
