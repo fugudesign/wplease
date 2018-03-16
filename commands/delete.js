@@ -12,11 +12,14 @@ enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
 function deleteCommand() {}
-
 deleteCommand.prototype.run = function(env) {
   // Get the settings
   var settings = utils.getSettings(env.configPath);
 
+  /**
+   * Ask for confirmation about deleting all 
+   * gitignored files and folders
+   */
   enquirer.ask({type: 'confirm', name: 'delete', message: 'Are you sure you want to delete all git ignored files ? This action is irreversible.', 'default': false})
   .then(function(answers) {
     if (answers.delete) {

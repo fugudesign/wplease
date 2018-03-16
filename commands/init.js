@@ -14,7 +14,6 @@ enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
 function initCommand() {}
-
 initCommand.prototype.run = function(env) {
   return new Promise((resolve, reject) => {
     // Get the settings

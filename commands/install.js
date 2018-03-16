@@ -15,13 +15,14 @@ enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
 function installCommand() {}
-
 installCommand.prototype.run = function(env) {
+  // Get the settings
   var settings = utils.getSettings(env.configPath);
 
   async.waterfall([
 
     /**
+     * INIT
      * Ask for run init command before install
      */
     function (callback) {
@@ -42,7 +43,8 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
-     * Download Wordpress
+     * DOWNLOAD
+     * Get the last Wordpress version
      */
     function (callback) {
       utils.bot('Getting Wordpress...');
@@ -56,6 +58,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * SETTINGS
      * Ask for database, site and admin settings
      */
     function (callback) {
@@ -89,6 +92,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * CONFIG
      * Generate wp-config.php
      */
     function(inputs, callback) {
@@ -113,6 +117,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * DATABASE
      * Ask for create, keep or override the database
      */
     function (inputs, callback) {
@@ -151,7 +156,8 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
-     * Install Wordpress
+     * INSTALL
+     * Run the Wordpress install
      */
     function (inputs, callback) {
       utils.bot('Installing Wordpress...');
@@ -168,6 +174,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * PLUGINS
      * Install plugins from the list in local 
      * or default wpleasefile.js file
      */
@@ -180,6 +187,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * CUSTOM THEME
      * Ask for a custom theme creation or usage,
      * add its rule in gitignore file
      * and ask for its activatation
@@ -259,6 +267,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * CUSTOM PLUGIN
      * Ask for a custom plugin creation or usage,
      * add its rule in gitignore file
      * and ask for its activatation
@@ -339,6 +348,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * THEMES
      * Install themes from the list in local 
      * or default wpleasefile.js file
      */
@@ -353,6 +363,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * CLEAN
      * Clean the default Wordpress install
      * (plugins, themes and posts)
      */
@@ -374,6 +385,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * OPTIONS
      * Create a homepage and create options from the list 
      * in local or default wpleasefile.js file
      */
@@ -395,6 +407,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * REWRITE
      * Activate the Wordpress rewriting
      */
     function (inputs, callback) {
@@ -404,6 +417,7 @@ installCommand.prototype.run = function(env) {
     },
 
     /**
+     * SUMMARY
      * Display the install summary with creditentials
      */
     function (inputs, callback) {

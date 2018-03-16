@@ -11,6 +11,7 @@ var exec = require('child_process').exec;
 // before anything touches it
 process.env.INIT_CWD = process.cwd();
 
+// Create a custom node cli
 var cli = new Liftoff({
   name:'wplease'
 });
@@ -23,31 +24,30 @@ process.once('exit', function(code) {
   }
 });
 
-function log(message, ...optionalParams) {
-  if (shouldLog) {
-    console.log(message, ...optionalParams);
-  }
-}
-
 // Parse those args m8
 var cliPackage = require('../package');
+var debug = utils.debug;
 var args = argv._;
 var command = args.length ? args[0] : 'default';
-var shouldLog = argv.verbose;
+var shoulddebug = argv.verbose;
+
+if (!shoulddebug) {
+  debug = function() {}
+}
 
 cli.on('require', function(name) {
-  log('Requiring external module', name);
+  debug('Requiring external module', name);
 });
 
 cli.on('requireFail', function(name) {
-  log('Failed to load external module', name);
+  debug('Failed to load external module', name);
 });
 
 cli.on('respawn', function(flags, child) {
   var nodeFlags = flags.join(', ');
   var pid = child.pid;
-  log('Node flags detected:', nodeFlags);
-  log('Respawned to PID:', pid);
+  debug('Node flags detected:', nodeFlags);
+  debug('Respawned to PID:', pid);
 });
 
 cli.launch({
@@ -56,6 +56,7 @@ cli.launch({
 
 function handleArguments(env) {
 
+  // Use the default wpleasefile.js if local one not exists
   if (!env.configPath) {
     env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.js`);
   }
@@ -64,18 +65,24 @@ function handleArguments(env) {
   // we let them chdir as needed
   if (process.cwd() !== env.cwd) {
     process.chdir(env.cwd);
-    log('Working directory changed to', env.cwd);
+    debug('Working directory changed to', env.cwd);
   }
   
+  // Execute the command
   execCommand(command, env);
 }
 
+/**
+ * Function to execute a js command
+ * @param {string} command 
+ * @param {object} env 
+ */
 function execCommand(command, env) {
   try {
     var script = require(`../commands/${command}`);
     utils.scriptStart(command);
     script.run(env);
   } catch (err) {
-    console.log(err);
+    console.debug(err);
   }
 }
