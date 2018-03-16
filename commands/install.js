@@ -14,8 +14,8 @@ enquirer.register('password', require('prompt-password'));
 enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
-function installCommand() {}
-installCommand.prototype.run = function(env) {
+function InstallCommand() {}
+InstallCommand.prototype.run = function(env) {
   // Get the settings
   var settings = utils.getSettings(env.configPath);
 
@@ -431,5 +431,5 @@ installCommand.prototype.run = function(env) {
   ]);
 }
 
-var inst = new installCommand();
+var inst = new InstallCommand();
 module.exports = inst;

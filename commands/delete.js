@@ -11,8 +11,8 @@ var enquirer = new Enquirer();
 enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
-function deleteCommand() {}
-deleteCommand.prototype.run = function(env) {
+function DeleteCommand() {}
+DeleteCommand.prototype.run = function(env) {
   // Get the settings
   var settings = utils.getSettings(env.configPath);
 
@@ -41,5 +41,5 @@ deleteCommand.prototype.run = function(env) {
   });
 }
 
-var inst = new deleteCommand();
+var inst = new DeleteCommand();
 module.exports = inst;

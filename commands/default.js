@@ -7,8 +7,8 @@ var help = require('../lib/help');
 var pckg = require('../package.json');
 
 // Command
-function defaultCommand() {}
-defaultCommand.prototype.run = function(env) {
+function DefaultCommand() {}
+DefaultCommand.prototype.run = function(env) {
   // Get the settings
   var settings = utils.getSettings(env.configPath);
 
@@ -22,5 +22,5 @@ defaultCommand.prototype.run = function(env) {
   console.log('');
 }
 
-var inst = new defaultCommand();
+var inst = new DefaultCommand();
 module.exports = inst;

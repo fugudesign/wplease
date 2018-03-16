@@ -13,8 +13,8 @@ var enquirer = new Enquirer();
 enquirer.register('confirm', require('prompt-confirm'));
 
 // Command
-function initCommand() {}
-initCommand.prototype.run = function(env) {
+function InitCommand() {}
+InitCommand.prototype.run = function(env) {
   return new Promise((resolve, reject) => {
     // Get the settings
     var settings = utils.getSettings(env.configPath);
@@ -86,5 +86,5 @@ initCommand.prototype.run = function(env) {
   
 }
 
-var inst = new initCommand();
+var inst = new InitCommand();
 module.exports = inst;
