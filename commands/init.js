@@ -45,17 +45,23 @@ initCommand.prototype.run = function(env) {
           .then(function(answers) {
             if (answers[`override_init_file_${i}`]) {
               copyInitFile(template, copy, filename, next);
+              if (files.length === i) {
+                resolve(true);
+              }
             } else {
               console.log(`Success: existing ${filename} kept in project.`);
               console.log('');
+              if (files.length === i) {
+                resolve(true);
+              }
               next();
             }
           });
         } else {
           copyInitFile(template, copy, filename, next);
-        }
-        if (files.length === i) {
-          resolve(true);
+          if (files.length === i) {
+            resolve(true);
+          }
         }
       },
       function (err,transformedItems) {
