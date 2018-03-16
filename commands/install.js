@@ -163,10 +163,10 @@ installCommand.prototype.run = function(env) {
 
       // Ask for generate theme
       enquirer.ask([
-        {type: 'confirm', name: 'generate_theme', message: 'Custom theme'}
+        {type: 'confirm', name: 'generate_plugin', message: 'Custom theme'}
       ])
       .then(function(answers) {
-        if (answers.generate_theme) {
+        if (answers.generate_plugin) {
 
           // Ask for the theme slug
           enquirer.ask([{type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project}])
@@ -179,14 +179,14 @@ installCommand.prototype.run = function(env) {
                 console.log('Warning:', `theme ${answers.slug} already exists.`);
 
                 // Ask for activate the theme
-                enquirer.ask([{type: 'confirm', name: 'activate', message: 'Activate theme'}])
+                enquirer.ask([{type: 'confirm', name: 'activate_theme', message: 'Activate theme'}])
                   .then(function(answers) {
-                    if (answers.activate) {
+                    if (answers.activate_theme) {
                       var activate = wp(`theme activate ${answers.slug}`, {async: true, verbose: true});
                       activate.on('close', function (code, signal) {
                         
-                        // Autoinject ungitignore for theme and plugin
-                        utils.addThemeToGitignore(env.cwd, answers.slug);
+                        // Autoinject ungitignore for theme
+                        utils.ignoreExtension(env.cwd, answers.slug, 'theme');
 
                         callback(null, answers);
                       })
@@ -197,27 +197,102 @@ installCommand.prototype.run = function(env) {
               else {
                 var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1);
                 enquirer.ask([
-                  {type: 'input', name: 'name', message: 'Theme name', 'default': name},
-                  {type: 'input', name: 'author', message: 'Theme author'},
-                  {type: 'input', name: 'author_uri', message: 'Theme author URI'},
-                  {type: 'confirm', name: 'sassify', message: 'Sassify theme'},
-                  {type: 'confirm', name: 'activate', message: 'Activate theme'}
+                  {type: 'input', name: 'theme_name', message: 'Theme name', 'default': name},
+                  {type: 'input', name: 'theme_author', message: 'Theme author'},
+                  {type: 'input', name: 'theme_author_uri', message: 'Theme author URI'},
+                  {type: 'confirm', name: 'theme_sassify', message: 'Sassify theme'},
+                  {type: 'confirm', name: 'theme_activate', message: 'Activate theme'}
                 ])
                 .then(function(answers) {
                   if (answers) {
                     console.log('');
                     
-                    // Autoinject ungitignore for theme and plugin
-                    utils.addThemeToGitignore(env.cwd, answers.slug);
+                    // Autoinject ungitignore for theme
+                    utils.ignoreExtension(env.cwd, answers.slug, 'theme');
     
                     // Generate new theme
                     wp(`scaffold _s ${answers.slug}`, {verbose: true,
                       flags: {
-                        'theme_name': answers.name,
-                        'author': answers.author,
-                        'author_uri': answers.author_uri,
-                        'sassify': answers.sassify,
-                        'activate': answers.activate
+                        'theme_name': answers.theme_name,
+                        'author': answers.theme_author,
+                        'author_uri': answers.theme_author_uri,
+                        'sassify': answers.theme_sassify,
+                        'activate': answers.theme_activate
+                      }
+                    });
+                    callback(null, answers);
+                  }
+                });
+              }
+            });
+          });
+        } else {
+          callback(null, answers);
+        }
+      });
+    },
+
+    function (inputs, callback) {
+      utils.bot('Custom plugin...');
+
+      // Ask for generate plugin
+      enquirer.ask([
+        {type: 'confirm', name: 'generate_plugin', message: 'Custom plugin'}
+      ])
+      .then(function(answers) {
+        if (answers.generate_plugin) {
+
+          // Ask for the plugin slug
+          enquirer.ask([{type: 'input', name: 'slug', message: 'Plugin slug', 'default': inputs.project}])
+          .then(function(answers) {
+
+            // Check if the plugin already exists
+            var exists = wp(`plugin is-installed ${answers.slug}`, {async: true});
+            exists.on('close', function (code, signal) {
+              if (code === 0) {
+                console.log('Warning:', `plugin ${answers.slug} already exists.`);
+
+                // Ask for activate the plugin
+                enquirer.ask([{type: 'confirm', name: 'activate_plugin', message: 'Activate plugin'}])
+                  .then(function(answers) {
+                    if (answers.activate_plugin) {
+                      var activate = wp(`plugin activate ${answers.slug}`, {async: true, verbose: true});
+                      activate.on('close', function (code, signal) {
+                        
+                        // Autoinject ungitignore for plugin
+                        utils.ignoreExtension(env.cwd, answers.slug, 'plugin');
+
+                        callback(null, answers);
+                      })
+                    }
+                  });
+              }
+              // If theme not exists, ask for theme info to generate it 
+              else {
+                var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1);
+                enquirer.ask([
+                  {type: 'input', name: 'plugin_name', message: 'Plugin name', 'default': name},
+                  {type: 'input', name: 'plugin_description', message: 'Plugin description', 'default': `Custom plugin for ${name}`},
+                  {type: 'input', name: 'plugin_author', message: 'Plugin author'},
+                  {type: 'input', name: 'plugin_author_uri', message: 'Plugin author URI'},
+                  {type: 'confirm', name: 'plugin_activate', message: 'Activate theme'}
+                ])
+                .then(function(answers) {
+                  if (answers) {
+                    console.log('');
+                    
+                    // Autoinject ungitignore for plugin
+                    utils.ignoreExtension(env.cwd, answers.slug, 'plugin');
+    
+                    // Generate new theme
+                    wp(`scaffold plugin ${answers.slug}`, {verbose: true,
+                      flags: {
+                        'plugin_name': answers.plugin_name,
+                        'plugin_description': answers.plugin_description,
+                        'plugin_author': answers.plugin_author,
+                        'plugin_author_uri': answers.plugin_author_uri,
+                        'activate': answers.plugin_activate,
+                        'skip-tests': true
                       }
                     });
                     callback(null, answers);
@@ -248,7 +323,7 @@ installCommand.prototype.run = function(env) {
       wp('plugin uninstall hello.php', {verbose: true});
       wp('plugin uninstall akismet', {verbose: true});
       // Remove default themes
-      if (inputs.generate_theme) {
+      if (inputs.generate_plugin) {
         wp('theme delete twentyfifteen', {verbose: true});
         wp('theme delete twentysixteen', {verbose: true});
         wp('theme delete twentyseventeen', {verbose: true});
