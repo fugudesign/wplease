@@ -21,6 +21,9 @@ installCommand.prototype.run = function(env) {
 
   async.waterfall([
 
+    /**
+     * Ask for run init command before install
+     */
     function (callback) {
       enquirer.ask({type: 'confirm', name: 'init', message: 'Initialize project', 'default': false})
         .then(function(answers) {
@@ -38,6 +41,9 @@ installCommand.prototype.run = function(env) {
         });
     },
 
+    /**
+     * Download Wordpress
+     */
     function (callback) {
       utils.bot('Getting Wordpress...');
       wp('core download', { verbose: true,
@@ -49,6 +55,9 @@ installCommand.prototype.run = function(env) {
       callback(null);
     },
 
+    /**
+     * Ask for database, site and admin settings
+     */
     function (callback) {
       utils.bot('Defining Wordpress settings...');
       enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
@@ -79,6 +88,9 @@ installCommand.prototype.run = function(env) {
       });
     },
 
+    /**
+     * Generate wp-config.php
+     */
     function(inputs, callback) {
       utils.bot('Creating config file...');
       wp('config create', {verbose: true,
@@ -100,6 +112,9 @@ installCommand.prototype.run = function(env) {
       callback(null, inputs);
     },
 
+    /**
+     * Ask for create, keep or override the database
+     */
     function (inputs, callback) {
       utils.bot('Creating database...');
       var dbCheck = wp('db check', {async: true});
@@ -124,7 +139,6 @@ installCommand.prototype.run = function(env) {
         else {
           createDB();
         }
-
         function createDB() {
           var db = wp('db create', {async: true, verbose: true});
           db.on('close', function(code, signal){
@@ -136,6 +150,9 @@ installCommand.prototype.run = function(env) {
       });
     },
 
+    /**
+     * Install Wordpress
+     */
     function (inputs, callback) {
       utils.bot('Installing Wordpress...');
       wp('core install', {verbose: true,
@@ -150,6 +167,10 @@ installCommand.prototype.run = function(env) {
       callback(null, inputs);
     },
 
+    /**
+     * Install plugins from the list in local 
+     * or default wpleasefile.js file
+     */
     function (inputs, callback) {
       utils.bot('Installing plugins...');
       settings.plugins.forEach(function (plugin) {
@@ -158,6 +179,11 @@ installCommand.prototype.run = function(env) {
       callback(null, inputs);
     },
 
+    /**
+     * Ask for a custom theme creation or usage,
+     * add its rule in gitignore file
+     * and ask for its activatation
+     */
     function (inputs, callback) {
       utils.bot('Custom theme...');
 
@@ -232,6 +258,11 @@ installCommand.prototype.run = function(env) {
       });
     },
 
+    /**
+     * Ask for a custom plugin creation or usage,
+     * add its rule in gitignore file
+     * and ask for its activatation
+     */
     function (inputs, callback) {
       utils.bot('Custom plugin...');
 
@@ -307,6 +338,10 @@ installCommand.prototype.run = function(env) {
       });
     },
 
+    /**
+     * Install themes from the list in local 
+     * or default wpleasefile.js file
+     */
     function (inputs, callback) {
       if (settings.themes.length) {
         utils.bot('Installing themes...');
@@ -317,6 +352,10 @@ installCommand.prototype.run = function(env) {
       callback(null, inputs);
     },
 
+    /**
+     * Clean the default Wordpress install
+     * (plugins, themes and posts)
+     */
     function (inputs, callback) {
       utils.bot('Cleaning default install...');
       // Remove default plugins
@@ -334,6 +373,10 @@ installCommand.prototype.run = function(env) {
       callback(null, inputs);
     },
 
+    /**
+     * Create a homepage and create options from the list 
+     * in local or default wpleasefile.js file
+     */
     function (inputs, callback) {
       utils.bot('Configure options...');
       wp('post create', {
@@ -351,12 +394,18 @@ installCommand.prototype.run = function(env) {
       callback(null, inputs);
     },
 
+    /**
+     * Activate the Wordpress rewriting
+     */
     function (inputs, callback) {
       utils.bot('Activating premalink structure...');
       wp('rewrite structure "/%postname%/"', {verbose: true, flags: {hard: true}});
       callback(null, inputs);
     },
 
+    /**
+     * Display the install summary with creditentials
+     */
     function (inputs, callback) {
       utils.bot('Congratulations!');
       console.log(`Access: http://${inputs.url}`);
