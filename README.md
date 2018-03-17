@@ -89,13 +89,8 @@ During installing, the script will ask you about the database and site creditent
 ```
 ...
 
-Defining Wordpress settings...
+Defining site and admin settings...
 
-? Project name        my-website
-? Database name       mywebsite
-? Database prefix     wp_
-? Database user       root
-? Database password   [hidden]
 ? Site url            my-website.loc
 ? Site title          My Website
 ? Admin login         admin
