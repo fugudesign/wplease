@@ -16,8 +16,6 @@ enquirer.register('confirm', require('prompt-confirm'));
 function InitCommand() {}
 InitCommand.prototype.run = function(env) {
   return new Promise((resolve, reject) => {
-    // Get the settings
-    var settings = utils.getSettings(env.configPath);
 
     utils.bot('Generating init files in project...');
 

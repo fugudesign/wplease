@@ -2,7 +2,6 @@
 
 'use strict';
 var utils = require('../lib/utils');
-var path = require('path');
 var Enquirer = require('enquirer');
 var exec = require('child_process').exec;
 
@@ -13,14 +12,17 @@ enquirer.register('confirm', require('prompt-confirm'));
 // Command
 function DeleteCommand() {}
 DeleteCommand.prototype.run = function(env) {
-  // Get the settings
-  var settings = utils.getSettings(env.configPath);
 
   /**
    * Ask for confirmation about deleting all 
    * gitignored files and folders
    */
-  enquirer.ask({type: 'confirm', name: 'delete', message: 'Are you sure you want to delete all git ignored files ? This action is irreversible.', 'default': false})
+  enquirer.ask({
+    type: 'confirm',
+    name: 'delete',
+    message: 'Are you sure you want to delete all git ignored files ? This action is irreversible.',
+    default: false
+  })
   .then(function(answers) {
     if (answers.delete) {
       console.log('');
@@ -29,10 +31,10 @@ DeleteCommand.prototype.run = function(env) {
 
       // Delete all git ignored files and folders
       exec('git clean -xdf', 
-      (e, stdout, stderr) => {
-          if (e instanceof Error) {
-              console.error(e);
-              throw e;
+      (err, stdout, stderr) => {
+          if (err instanceof Error) {
+              console.error(err);
+              throw err;
           }
           console.log('Success: Deleted git ignored files.');
           console.log('');

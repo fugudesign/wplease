@@ -59,6 +59,9 @@ function handleArguments(env) {
   if (!env.configPath) {
     env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.js`);
   }
+  
+  // Get the settings
+  env.settings = utils.getSettings(env.configPath);
 
   // Chdir before requiring wpleasefile to make sure
   // we let them chdir as needed

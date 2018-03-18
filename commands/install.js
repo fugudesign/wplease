@@ -15,11 +15,7 @@ enquirer.register('confirm', require('prompt-confirm'))
 
 // Command
 function InstallCommand () {}
-
 InstallCommand.prototype.run = function (env) {
-  // Get the settings
-  var settings = utils.getSettings(env.configPath)
-  
   async.waterfall([
   
     /**
@@ -74,7 +70,7 @@ InstallCommand.prototype.run = function (env) {
               wp('core download', {
                 verbose: true,
                 flags: {
-                  locale: settings.config.locale,
+                  locale: env.settings.config.locale,
                   force: true
                 }
               })
@@ -91,7 +87,7 @@ InstallCommand.prototype.run = function (env) {
     
     /**
      * DATABASE SETTINGS
-     * Ask for database settings
+     * Ask for database env.settings
      */
     function (inputs, callback) {
       var config = wp('config path')
@@ -99,7 +95,7 @@ InstallCommand.prototype.run = function (env) {
         inputs.config = true
         callback(null, inputs)
       } else {
-        utils.bot('Defining database settings...')
+        utils.bot('Defining database env.settings...')
         var project = inputs ? inputs.project : 'wp' + Math.random().toString(36).substr(2, 8)
         var prefix = project.substr(0, 4)
         var questions = [
@@ -129,7 +125,7 @@ InstallCommand.prototype.run = function (env) {
           verbose: true,
           input: `
           define('WP_DEBUG', false);
-          define('WP_POST_REVISIONS', ${settings.config.revisions});
+          define('WP_POST_REVISIONS', ${env.settings.config.revisions});
           define('DISABLE_WP_CRON', false);
           define('DISALLOW_FILE_EDIT', true);
         `,
@@ -189,7 +185,7 @@ InstallCommand.prototype.run = function (env) {
     
     /**
      * WORDPRESS SETTINGS
-     * Ask for site and admin settings
+     * Ask for site and admin env.settings
      */
     function (inputs, callback) {
       inputs.need_install = false
@@ -200,7 +196,7 @@ InstallCommand.prototype.run = function (env) {
         inputs.need_install = true
       }
       if (inputs.need_install || !inputs.keep_db) {
-        utils.bot('Defining site and admin settings...')
+        utils.bot('Defining site and admin env.settings...')
         var project = inputs.project
         var uniqPass = Math.random().toString(36).substr(2, 8)
         var title = project.charAt(0).toUpperCase() + project.slice(1)
@@ -252,7 +248,7 @@ InstallCommand.prototype.run = function (env) {
      */
     function (inputs, callback) {
       utils.bot('Installing plugins...')
-      settings.plugins.forEach(function (plugin) {
+      env.settings.plugins.forEach(function (plugin) {
         wp(`plugin install ${plugin}`, {verbose: true, flags: {activate: true}})
       })
       callback(null, inputs)
@@ -434,9 +430,9 @@ InstallCommand.prototype.run = function (env) {
      * or default wpleasefile.js file
      */
     function (inputs, callback) {
-      if (settings.themes.length) {
+      if (env.settings.themes.length) {
         utils.bot('Installing themes...')
-        settings.themes.forEach(function (theme) {
+        env.settings.themes.forEach(function (theme) {
           wp(`theme install ${theme}`, {verbose: true})
         })
       }
@@ -483,8 +479,8 @@ InstallCommand.prototype.run = function (env) {
           post_author: 1
         }
       })
-      if (settings.options) {
-        Object.entries(settings.options).forEach(function (option) {
+      if (env.settings.options) {
+        Object.entries(env.settings.options).forEach(function (option) {
           wp(`option update ${option[0]} "${option[1]}"`, {verbose: true})
         })
       }
