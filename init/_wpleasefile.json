@@ -1,0 +1,20 @@
+{
+  "name": "",
+  "config": {
+    "locale": "fr_FR",
+    "debug": false,
+    "post_revisions": 5,
+    "disable_cron": false,
+    "disallow_file_edit": true
+  },
+  "themes": [],
+  "plugins": [
+    "wp-edit",
+    "maintenance-switch"
+  ],
+  "options": {
+    "timezone_string": "Europe/Paris",
+    "show_on_front": "page",
+    "page_on_front": 3
+  }
+}

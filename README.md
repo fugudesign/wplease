@@ -58,14 +58,14 @@ wplease install
 wplease init
 ```
 This command suggests you to create or override thoses files into your project: 
-- The `wpleasefile.js` file to customize your Wordpress installation 
+- The `wpleasefile.json` file to customize your Wordpress installation 
 - The `.gitignore` file to ignore the whole wordpress code.
 - The `.gitattributes` file.
 - The `.editorconfig` file.
 
 ### Customize your Wordpress config
 
-Then edit the `wpleasefile.js` to customize your Wordpress install.
+Then edit the `wpleasefile.json` to customize your Wordpress install.
 For example, your can simply specify a custom [plugins](https://wordpress.org/plugins/) list:
 ```javascript
 module.exports = {
