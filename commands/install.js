@@ -545,9 +545,12 @@ InstallCommand.prototype.run = function (env) {
      */
     function (inputs, callback) {
       utils.bot('Congratulations!')
-      console.log(`Access: http://${inputs.url}`)
-      console.log(`Login: ${inputs.admin_user}`)
-      console.log(`Password: ${inputs.admin_password}`)
+      console.log('Your site is ready for development.')
+      if (inputs.url) {
+        console.log(`Access: http://${inputs.url}`)
+        console.log(`Login: ${inputs.admin_user}`)
+        console.log(`Password: ${inputs.admin_password}`)
+      }
       console.log('')
     }
   
