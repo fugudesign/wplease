@@ -37,14 +37,14 @@ To build a Wordpress instance with WPlease, you must have a Wordpress operating 
 
 You should install this module as a global module.
 
-```
+```bash
 npm install -g wplease
 ```
 
 ### Usage
 
 Create a basic Wordpress install from scratch.
-```
+```bash
 mkdir my-project
 cd my-project
 wplease install
@@ -54,7 +54,7 @@ wplease install
 
 ### Initialize your project
 
-```
+```bash
 wplease init
 ```
 This command suggests you to create or override thoses files into your project: 
@@ -100,13 +100,13 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
 
 ### Sync your Wordpress themes and plugins
 
-```
+```bash
 wplease sync
 ```
 
 This command suggests you to synchronize your plugins and themes from your wplease.json lists.
 
-```
+```bash
  ? What to sync
  ❯◉ all
   ◯ plugins
@@ -116,7 +116,7 @@ This command suggests you to synchronize your plugins and themes from your wplea
 > **Note:**
 > You can add the sync type to skip prompts.  
 
-```
+```bash
 wplease sync plugins
 ```
 
@@ -124,14 +124,14 @@ wplease sync plugins
 
 Then you can run your custom install.
 
-```
+```bash
 wplease install
 ```
 
 > **Note:**
 > You can add your project name to skip prompts.  
 
-```
+```bash
 wplease install my-project
 ```
 
@@ -139,7 +139,7 @@ wplease install my-project
 
 During installing, the script will ask you about several informations like the database and site creditentials. Your Wordpress instance will be quickly ready to use.
 
-```
+```bash
 ...
 
 Defining site and admin settings...
