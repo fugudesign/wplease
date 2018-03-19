@@ -27,10 +27,15 @@ InstallCommand.prototype.run = function (env) {
         enquirer.answers.project = params[0]
         callback(null, enquirer.answers)
       } else {
-        enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
-          .then(function (answers) {
-            callback(null, answers)
-          })
+        if (env.settings.name) {
+          enquirer.answers.project = env.settings.name
+          callback(null, enquirer.answers)
+        } else {
+          enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
+            .then(function (answers) {
+              callback(null, answers)
+            })
+        }
       }
     },
     
@@ -44,6 +49,7 @@ InstallCommand.prototype.run = function (env) {
           if (answers.init) {
             InitScript.run(env)
               .then((res) => {
+                console.log('')
                 callback(null, answers)
               })
               .catch((err) => {
@@ -51,6 +57,7 @@ InstallCommand.prototype.run = function (env) {
                 callback(null, answers)
               })
           } else {
+            console.log('')
             callback(null, answers)
           }
         })
@@ -61,27 +68,40 @@ InstallCommand.prototype.run = function (env) {
      * Get the last Wordpress version
      */
     function (inputs, callback) {
-      var version = wp('core version')
-      if (Boolean(version)) {
-        enquirer.ask({type: 'confirm', name: 'override_wp', message: 'Override Wordpress', 'default': false})
-          .then(function (answers) {
-            if (answers.override_wp) {
-              utils.bot('Getting Wordpress...')
-              wp('core download', {
-                verbose: true,
-                flags: {
-                  locale: env.settings.config.locale,
-                  force: true
-                }
-              })
-            } else {
-              console.log('')
-            }
-            callback(null, answers)
-          })
-      } else {
+      try {
+        utils.bot('Checking Wordpress...')
+        var version = wp('core version')
+        if (Boolean(version)) {
+          enquirer.ask({type: 'confirm', name: 'override_wp', message: 'Override Wordpress', 'default': false})
+            .then(function (answers) {
+              if (answers.override_wp) {
+                console.log('')
+                installWordpress()
+              } else {
+                console.log('')
+              }
+              callback(null, answers)
+            })
+        } else {
+          console.log('')
+          installWordpress()
+          callback(null, inputs)
+        }
+      } catch (err) {
         console.log('')
+        installWordpress()
         callback(null, inputs)
+      }
+      
+      function installWordpress() {
+        utils.bot('Getting Wordpress...')
+        wp('core download', {
+          verbose: true,
+          flags: {
+            locale: env.settings.config.locale,
+            force: true
+          }
+        })
       }
     },
     
@@ -90,12 +110,22 @@ InstallCommand.prototype.run = function (env) {
      * Ask for database env.settings
      */
     function (inputs, callback) {
-      var config = wp('config path')
-      if (Boolean(config)) {
-        inputs.config = true
-        callback(null, inputs)
-      } else {
-        utils.bot('Defining database env.settings...')
+      try {
+        utils.bot('Checking config...')
+        var config = wp('config path')
+        if (Boolean(config)) {
+          inputs.config = true
+          callback(null, inputs)
+        } else {
+          console.log('')
+          createConfig()
+        }
+      } catch (err) {
+        console.log('')
+        createConfig()
+      }
+      function createConfig () {
+        utils.bot('Defining database settings...')
         var project = inputs ? inputs.project : 'wp' + Math.random().toString(36).substr(2, 8)
         var prefix = project.substr(0, 4)
         var questions = [
@@ -124,10 +154,10 @@ InstallCommand.prototype.run = function (env) {
         wp('config create', {
           verbose: true,
           input: `
-          define('WP_DEBUG', false);
-          define('WP_POST_REVISIONS', ${env.settings.config.revisions});
-          define('DISABLE_WP_CRON', false);
-          define('DISALLOW_FILE_EDIT', true);
+          define('WP_DEBUG', ${env.settings.config.debug});
+          define('WP_POST_REVISIONS', ${env.settings.config.post_revisions});
+          define('DISABLE_WP_CRON', ${env.settings.config.disable_cron});
+          define('DISALLOW_FILE_EDIT', ${env.settings.config.disallow_file_edit});
         `,
           flags: {
             'dbname': inputs.dbname,
@@ -189,14 +219,20 @@ InstallCommand.prototype.run = function (env) {
      */
     function (inputs, callback) {
       inputs.need_install = false
-      try {
-        wp('core is-installed')
-        callback(null, inputs)
-      } catch (err) {
-        inputs.need_install = true
+      if (!inputs.keep_db) {
+        defineSiteSettings()
+      } else {
+        try {
+          wp('core is-installed')
+          callback(null, inputs)
+        } catch (err) {
+          inputs.need_install = true
+          defineSiteSettings()
+        }
       }
-      if (inputs.need_install || !inputs.keep_db) {
-        utils.bot('Defining site and admin env.settings...')
+      
+      function defineSiteSettings() {
+        utils.bot('Defining site and admin settings...')
         var project = inputs.project
         var uniqPass = Math.random().toString(36).substr(2, 8)
         var title = project.charAt(0).toUpperCase() + project.slice(1)
@@ -210,13 +246,11 @@ InstallCommand.prototype.run = function (env) {
         enquirer.ask(questions)
           .then(function (answers) {
             console.log('')
-            
+      
             if (answers) {
               callback(null, answers)
             }
           })
-      } else {
-        callback(null, inputs)
       }
     },
     
@@ -238,13 +272,15 @@ InstallCommand.prototype.run = function (env) {
           }
         })
         callback(null, inputs)
+      } else {
+        callback(null, inputs)
       }
     },
     
     /**
      * PLUGINS
      * Install plugins from the list in local
-     * or default wpleasefile.js file
+     * or default wpleasefile.json file
      */
     function (inputs, callback) {
       utils.bot('Installing plugins...')
@@ -427,7 +463,7 @@ InstallCommand.prototype.run = function (env) {
     /**
      * THEMES
      * Install themes from the list in local
-     * or default wpleasefile.js file
+     * or default wpleasefile.json file
      */
     function (inputs, callback) {
       if (env.settings.themes.length) {
@@ -468,7 +504,7 @@ InstallCommand.prototype.run = function (env) {
     /**
      * OPTIONS
      * Create a homepage and create options from the list
-     * in local or default wpleasefile.js file
+     * in local or default wpleasefile.json file
      */
     function (inputs, callback) {
       utils.bot('Configure options...')
@@ -492,7 +528,7 @@ InstallCommand.prototype.run = function (env) {
      * Activate the Wordpress rewriting
      */
     function (inputs, callback) {
-      utils.bot('Activating premalink structure...')
+      utils.bot('Activating permalink structure...')
       wp('rewrite structure "/%postname%/"', {verbose: true, flags: {hard: true}})
       callback(null, inputs)
     },
