@@ -1,6 +1,6 @@
 {
   "name": "wplease",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Automate Wordpress generation and development from your dev repository.",
   "main": "index.js",
   "scripts": {
