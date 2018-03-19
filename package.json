@@ -26,10 +26,12 @@
     "commander": "^2.15.0",
     "enquirer": "^1.0.3",
     "liftoff": "^2.5.0",
+    "lodash": "^4.17.5",
     "minimist": "^1.2.0",
     "npm": "^5.7.1",
     "prompt-confirm": "^1.2.0",
     "prompt-password": "^1.2.0",
+    "prompt-radio": "^1.2.1",
     "sync-each": "^1.0.1",
     "update-json": "^1.0.0",
     "wp-astro": "^1.1.7"

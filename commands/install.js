@@ -7,6 +7,7 @@ var Enquirer = require('enquirer')
 var async = require('async')
 
 var InitScript = require('./init')
+var SyncScript = require('./sync')
 
 // create a new prompt instance
 var enquirer = new Enquirer()
@@ -286,11 +287,10 @@ InstallCommand.prototype.run = function (env) {
      * or default wpleasefile.json file
      */
     function (inputs, callback) {
-      utils.bot('Installing plugins...')
-      env.settings.plugins.forEach(function (plugin) {
-        wp(`plugin install ${plugin}`, {verbose: true, flags: {activate: true}})
-      })
-      callback(null, inputs)
+      SyncScript.run(env, 'plugins')
+        .then(res => {
+          callback(null, inputs)
+        })
     },
     
     /**
@@ -301,78 +301,96 @@ InstallCommand.prototype.run = function (env) {
      */
     function (inputs, callback) {
       utils.bot('Custom theme...')
-      
-      // Ask for generate theme
-      enquirer.ask([
-        {type: 'confirm', name: 'generate_plugin', message: 'Custom theme'}
-      ])
-        .then(function (answers) {
-          if (answers.generate_plugin) {
-            
-            // Ask for the theme slug
-            enquirer.ask([{type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project}])
-              .then(function (answers) {
-                
-                // Check if the theme already exists
-                var exists = wp(`theme is-installed ${answers.slug}`, {async: true})
-                exists.on('close', function (code, signal) {
-                  if (code === 0) {
-                    console.log('Warning:', `theme ${answers.slug} already exists.`)
-                    
-                    // Ask for activate the theme
-                    enquirer.ask([{type: 'confirm', name: 'activate_theme', message: 'Activate theme'}])
-                      .then(function (answers) {
-                        if (answers.activate_theme) {
-                          var activate = wp(`theme activate ${answers.slug}`, {async: true, verbose: true})
-                          activate.on('close', function (code, signal) {
-                            
-                            // Autoinject ungitignore for theme
-                            utils.ignoreExtension(env.cwd, answers.slug, 'theme')
-                            
-                            callback(null, answers)
-                          })
-                        }
-                      })
-                  }
-                  // If theme not exists, ask for theme info to generate it
-                  else {
-                    var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1)
-                    enquirer.ask([
-                      {type: 'input', name: 'theme_name', message: 'Theme name', 'default': name},
-                      {type: 'input', name: 'theme_author', message: 'Theme author'},
-                      {type: 'input', name: 'theme_author_uri', message: 'Theme author URI'},
-                      {type: 'confirm', name: 'theme_sassify', message: 'Sassify theme'},
-                      {type: 'confirm', name: 'theme_activate', message: 'Activate theme'}
-                    ])
-                      .then(function (answers) {
-                        if (answers) {
-                          console.log('')
-                          
-                          // Autoinject ungitignore for theme
-                          utils.ignoreExtension(env.cwd, answers.slug, 'theme')
-                          
-                          // Generate new theme
-                          wp(`scaffold _s ${answers.slug}`, {
-                            verbose: true,
-                            flags: {
-                              'theme_name': answers.theme_name,
-                              'author': answers.theme_author,
-                              'author_uri': answers.theme_author_uri,
-                              'sassify': answers.theme_sassify,
-                              'activate': answers.theme_activate
-                            }
-                          })
-                          callback(null, answers)
-                        }
-                      })
-                  }
+      var theme = utils.hasCustomTheme(env)
+      if (theme) {
+        inputs.theme_slug = theme
+        activateTheme(inputs)
+      } else {
+        // Ask for generate theme
+        enquirer.ask([
+          {type: 'confirm', name: 'generate_plugin', message: 'Custom theme'}
+        ])
+          .then(function (answers) {
+            if (answers.generate_plugin) {
+        
+              // Ask for the theme slug
+              enquirer.ask([{type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project}])
+                .then(function (answers) {
+                  activateTheme(answers)
                 })
+            } else {
+              console.log('')
+              callback(null, answers)
+            }
+          })
+      }
+      
+      function activateTheme (answers) {
+        // Check if the theme already exists
+        var exists = wp(`theme is-installed ${answers.theme_slug}`, {async: true})
+        exists.on('close', function (code, signal) {
+          if (code === 0) {
+            console.log('Warning:', `theme ${answers.theme_slug} already exists.`)
+      
+            // Ask for activate the theme
+            enquirer.ask([{type: 'confirm', name: 'activate_theme', message: 'Activate theme'}])
+              .then(function (answers) {
+                if (answers.activate_theme) {
+                  var activate = wp(`theme activate ${answers.theme_slug}`, {async: true, verbose: true})
+                  activate.on('close', function (code, signal) {
+              
+                    // Add custom theme to wpleasefile
+                    utils.addCustomThemeToJson(env, answers.theme_slug)
+                      .then(function (res) {
+                  
+                        // Autoinject ungitignore for theme
+                        utils.ignoreExtension(env, answers.theme_slug, 'theme')
+                  
+                        callback(null, answers)
+                      })
+                  })
+                }
               })
-          } else {
-            console.log('')
-            callback(null, answers)
+          }
+          // If theme not exists, ask for theme info to generate it
+          else {
+            var name = answers.theme_slug.charAt(0).toUpperCase() + answers.theme_slug.slice(1)
+            enquirer.ask([
+              {type: 'input', name: 'theme_name', message: 'Theme name', 'default': name},
+              {type: 'input', name: 'theme_author', message: 'Theme author'},
+              {type: 'input', name: 'theme_author_uri', message: 'Theme author URI'},
+              {type: 'confirm', name: 'theme_sassify', message: 'Sassify theme'},
+              {type: 'confirm', name: 'theme_activate', message: 'Activate theme'}
+            ])
+              .then(function (answers) {
+                if (answers) {
+                  console.log('')
+            
+                  // Add custom theme to wpleasefile
+                  utils.addCustomThemeToJson(env.cwd, answers.theme_slug)
+                    .then(res => {
+                
+                      // Autoinject ungitignore for theme
+                      utils.ignoreExtension(env, answers.theme_slug, 'theme')
+                
+                      // Generate new theme
+                      wp(`scaffold _s ${answers.theme_slug}`, {
+                        verbose: true,
+                        flags: {
+                          'theme_name': answers.theme_name,
+                          'author': answers.theme_author,
+                          'author_uri': answers.theme_author_uri,
+                          'sassify': answers.theme_sassify,
+                          'activate': answers.theme_activate
+                        }
+                      })
+                      callback(null, answers)
+                    })
+                }
+              })
           }
         })
+      }
     },
     
     /**
@@ -383,84 +401,101 @@ InstallCommand.prototype.run = function (env) {
      */
     function (inputs, callback) {
       utils.bot('Custom plugin...')
-      
-      // Ask for generate plugin
-      enquirer.ask([
-        {type: 'confirm', name: 'generate_plugin', message: 'Custom plugin'}
-      ])
-        .then(function (answers) {
-          if (answers.generate_plugin) {
-            
-            // Ask for the plugin slug
-            enquirer.ask([{type: 'input', name: 'slug', message: 'Plugin slug', 'default': inputs.project}])
-              .then(function (answers) {
-                
-                // Check if the plugin already exists
-                var exists = wp(`plugin is-installed ${answers.slug}`, {async: true})
-                exists.on('close', function (code, signal) {
-                  if (code === 0) {
-                    console.log('Warning:', `plugin ${answers.slug} already exists.`)
-                    
-                    // Ask for activate the plugin
-                    enquirer.ask([{type: 'confirm', name: 'activate_plugin', message: 'Activate plugin'}])
-                      .then(function (answers) {
-                        if (answers.activate_plugin) {
-                          var activate = wp(`plugin activate ${answers.slug}`, {async: true, verbose: true})
-                          activate.on('close', function (code, signal) {
-                            
-                            // Autoinject ungitignore for plugin
-                            utils.ignoreExtension(env.cwd, answers.slug, 'plugin')
-                            
-                            callback(null, answers)
-                          })
-                        }
-                      })
-                  }
-                  // If theme not exists, ask for theme info to generate it
-                  else {
-                    var name = answers.slug.charAt(0).toUpperCase() + answers.slug.slice(1)
-                    enquirer.ask([
-                      {type: 'input', name: 'plugin_name', message: 'Plugin name', 'default': name},
-                      {
-                        type: 'input',
-                        name: 'plugin_description',
-                        message: 'Plugin description',
-                        'default': `Custom plugin for ${name}`
-                      },
-                      {type: 'input', name: 'plugin_author', message: 'Plugin author'},
-                      {type: 'input', name: 'plugin_author_uri', message: 'Plugin author URI'},
-                      {type: 'confirm', name: 'plugin_activate', message: 'Activate theme'}
-                    ])
-                      .then(function (answers) {
-                        if (answers) {
-                          console.log('')
-                          
-                          // Autoinject ungitignore for plugin
-                          utils.ignoreExtension(env.cwd, answers.slug, 'plugin')
-                          
-                          // Generate new theme
-                          wp(`scaffold plugin ${answers.slug}`, {
-                            verbose: true,
-                            flags: {
-                              'plugin_name': answers.plugin_name,
-                              'plugin_description': answers.plugin_description,
-                              'plugin_author': answers.plugin_author,
-                              'plugin_author_uri': answers.plugin_author_uri,
-                              'activate': answers.plugin_activate,
-                              'skip-tests': true
-                            }
-                          })
-                          callback(null, answers)
-                        }
-                      })
-                  }
+      var plugin = utils.hasCustomPlugin(env)
+      if (plugin) {
+        inputs.plugin_slug = plugin
+        activatePlugin(inputs)
+      } else {
+        // Ask for generate plugin
+        enquirer.ask([
+          {type: 'confirm', name: 'generate_plugin', message: 'Custom plugin'}
+        ])
+          .then(function (answers) {
+            if (answers.generate_plugin) {
+              
+              // Ask for the plugin slug
+              enquirer.ask([{type: 'input', name: 'plugin_slug', message: 'Plugin slug', 'default': inputs.project}])
+                .then(function (answers) {
+                  activatePlugin(answers)
                 })
+            } else {
+              console.log('')
+              callback(null, answers)
+            }
+          })
+      }
+      
+      function activatePlugin (answers) {
+        // Check if the plugin already exists
+        var exists = wp(`plugin is-installed ${answers.plugin_slug}`, {async: true})
+        exists.on('close', function (code, signal) {
+          if (code === 0) {
+            console.log('Warning:', `plugin ${answers.plugin_slug} already exists.`)
+        
+            // Ask for activate the plugin
+            enquirer.ask([{type: 'confirm', name: 'activate_plugin', message: 'Activate plugin'}])
+              .then(function (answers) {
+                if (answers.activate_plugin) {
+                  var activate = wp(`plugin activate ${answers.plugin_slug}`, {async: true, verbose: true})
+                  activate.on('close', function (code, signal) {
+                
+                    // Add custom plugin to wpleasefile
+                    utils.addCustomPluginToJson(env, answers.plugin_slug)
+                      .then(function (res) {
+                        // Autoinject ungitignore for plugin
+                        utils.ignoreExtension(env, answers.plugin_slug, 'plugin')
+                    
+                        callback(null, answers)
+                      })
+                  })
+                }
               })
-          } else {
-            console.log('')
-            callback(null, answers)
+          }
+          // If theme not exists, ask for theme info to generate it
+          else {
+            var name = answers.plugin_slug.charAt(0).toUpperCase() + answers.plugin_slug.slice(1)
+            enquirer.ask([
+              {type: 'input', name: 'plugin_name', message: 'Plugin name', 'default': name},
+              {
+                type: 'input',
+                name: 'plugin_description',
+                message: 'Plugin description',
+                'default': `Custom plugin for ${name}`
+              },
+              {type: 'input', name: 'plugin_author', message: 'Plugin author'},
+              {type: 'input', name: 'plugin_author_uri', message: 'Plugin author URI'},
+              {type: 'confirm', name: 'plugin_activate', message: 'Activate theme'}
+            ])
+              .then(function (answers) {
+                if (answers) {
+                  console.log('')
+              
+                  // Add custom plugin to wpleasefile
+                  utils.addCustomPluginToJson(env, answers.plugin_slug)
+                    .then(function (res) {
+                  
+                      // Autoinject ungitignore for plugin
+                      utils.ignoreExtension(env, answers.plugin_slug, 'plugin')
+                  
+                      // Generate new theme
+                      wp(`scaffold plugin ${answers.plugin_slug}`, {
+                        verbose: true,
+                        flags: {
+                          'plugin_name': answers.plugin_name,
+                          'plugin_description': answers.plugin_description,
+                          'plugin_author': answers.plugin_author,
+                          'plugin_author_uri': answers.plugin_author_uri,
+                          'activate': answers.plugin_activate,
+                          'skip-tests': true
+                        }
+                      })
+                      callback(null, answers)
+                    })
+                }
+              })
           }
         })
+      }
     },
     
     /**
@@ -469,13 +504,10 @@ InstallCommand.prototype.run = function (env) {
      * or default wpleasefile.json file
      */
     function (inputs, callback) {
-      if (env.settings.themes.length) {
-        utils.bot('Installing themes...')
-        env.settings.themes.forEach(function (theme) {
-          wp(`theme install ${theme}`, {verbose: true})
+      SyncScript.run(env, 'themes')
+        .then(res => {
+          callback(null, inputs)
         })
-      }
-      callback(null, inputs)
     },
     
     /**

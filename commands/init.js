@@ -89,7 +89,7 @@ InitCommand.prototype.run = function (env) {
             if (filename == 'wpleasefile.json') {
               // For call from install script with project name in env var
               if (env.project_name) {
-                utils.addProjectNameToJson(env.cwd, env.project_name)
+                utils.addProjectNameToJson(env, env.project_name)
                   .then((res) => {
                     console.log(`Success: ${filename} was generated in project.`)
                     console.log('')
@@ -100,7 +100,7 @@ InitCommand.prototype.run = function (env) {
               else if (!env.settings.name) {
                 enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
                   .then(function (answers) {
-                    utils.addProjectNameToJson(env.cwd, answers.project)
+                    utils.addProjectNameToJson(env, answers.project)
                       .then((res) => {
                         console.log(`Success: ${filename} was generated in project.`)
                         console.log('')
@@ -110,7 +110,7 @@ InitCommand.prototype.run = function (env) {
               }
               // If current wpleasefile already contains project name
               else {
-                utils.addProjectNameToJson(env.cwd, env.settings.name)
+                utils.addProjectNameToJson(env, env.settings.name)
                   .then((res) => {
                     console.log(`Success: ${filename} was generated in project.`)
                     console.log('')
