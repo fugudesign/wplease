@@ -72,6 +72,14 @@ Then edit the `wplease.json` to customize your Wordpress install.
 For example, your can simply specify a custom [plugins](https://wordpress.org/plugins/) list:
 ```json
 {
+  "name": "my-project",
+  "config": {
+    "locale": "fr_FR",
+    "debug": false,
+    "post_revisions": 5,
+    "disable_cron": false,
+    "disallow_file_edit": true
+  },
   "themes": [
     "@my-project"
   ],
@@ -79,7 +87,12 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
     "wp-edit",
     "maintenance-switch",
     "@my-project"
-  ]
+  ],
+  "options": {
+    "timezone_string": "Europe/Paris",
+    "show_on_front": "page",
+    "page_on_front": 3
+  }
 }
 ```
 > **Note:** 
