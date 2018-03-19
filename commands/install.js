@@ -517,7 +517,8 @@ InstallCommand.prototype.run = function (env) {
         flags: {
           post_type: 'page',
           post_title: 'Home',
-          post_author: 1
+          post_author: 1,
+          post_status: 'publish'
         }
       })
       if (env.settings.options) {
