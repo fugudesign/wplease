@@ -14,7 +14,8 @@ process.env.INIT_CWD = process.cwd()
 
 // Create a custom node cli
 var cli = new Liftoff({
-  name: 'wplease'
+  name: 'wplease',
+  configName: 'wplease.json'
 })
 
 // Exit with 0 or 1
@@ -57,18 +58,18 @@ cli.launch({
 
 function handleArguments (env) {
   
-  if (fs.existsSync(`${env.cwd}/wpleasefile.js`)) {
+  if (fs.existsSync(`${env.cwd}/wpleasefile.js`) || fs.existsSync(`${env.cwd}/wpleasefile.json`)) {
     console.log('')
-    console.log(colors.red('WARNING:'), colors.red(`The wpleasefile.js file has changed for wpleasefile.json`))
-    console.log(`A wpleasefile.js was detected in your project.
+    console.log(colors.red('WARNING:'), colors.red(`The wpleasefile.js and wpleasefile.json files have changed for wplease.json`))
+    console.log(`A wpleasefile.js or wpleasefile.json was detected in your project.
 You need to update your project.
 Please run ${colors.cyan('wplease init')} or ${colors.cyan('wplease install')} and accept to init
 then update the new file with your custom config.`)
   }
   
-  // Use the default wpleasefile.json if local one not exists
+  // Use the default wplease.json if local one not exists
   if (!env.configPath) {
-    env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.json`)
+    env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wplease.json`)
   }
   
   // Get the settings

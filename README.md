@@ -58,17 +58,17 @@ wplease install
 wplease init
 ```
 This command suggests you to create or override thoses files into your project: 
-- The `wpleasefile.json` file to customize your Wordpress installation 
+- The `wplease.json` file to customize your Wordpress installation 
 - The `.gitignore` file to ignore the whole wordpress code.
 - The `.gitattributes` file.
 - The `.editorconfig` file.
 
 > **Warning:**
-> Since version 1.0.10, the wpleasefile.js became wpleasefile.json. Please run the init script to generate the new file, then update your config.
+> Since version 1.0.10, wpleasefile.js and wpleasefile.json files became wplease.json. Please run the init script to generate the new file, then update your config.
 
 ### Customize your Wordpress config
 
-Then edit the `wpleasefile.json` to customize your Wordpress install.
+Then edit the `wplease.json` to customize your Wordpress install.
 For example, your can simply specify a custom [plugins](https://wordpress.org/plugins/) list:
 ```json
 {
@@ -83,7 +83,7 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
 }
 ```
 > **Note:** 
-> Custom themes and plugins need to be prefixed by "@". "Custom" means that the extension does not exist on the Wordpress repository. The `wplease install` command add it on theme or plugin generation but alternatively you can fill it manually in your wpleasefile.json.
+> Custom themes and plugins need to be prefixed by "@". "Custom" means that the extension does not exist on the Wordpress repository. The `wplease install` command add it on theme or plugin generation but alternatively you can fill it manually in your wplease.json.
 
 ### Sync your Wordpress themes and plugins
 
@@ -91,7 +91,7 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
 wplease sync
 ```
 
-This command suggests you to synchronize your plugins and themes from your wpleasefile.json lists.
+This command suggests you to synchronize your plugins and themes from your wplease.json lists.
 
 ```
  ? What to sync

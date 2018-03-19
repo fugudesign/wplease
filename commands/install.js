@@ -284,7 +284,7 @@ InstallCommand.prototype.run = function (env) {
     /**
      * PLUGINS
      * Install plugins from the list in local
-     * or default wpleasefile.json file
+     * or default wplease.json file
      */
     function (inputs, callback) {
       SyncScript.run(env, 'plugins')
@@ -501,7 +501,7 @@ InstallCommand.prototype.run = function (env) {
     /**
      * THEMES
      * Install themes from the list in local
-     * or default wpleasefile.json file
+     * or default wplease.json file
      */
     function (inputs, callback) {
       SyncScript.run(env, 'themes')
@@ -541,7 +541,7 @@ InstallCommand.prototype.run = function (env) {
     /**
      * OPTIONS
      * Create a homepage and create options from the list
-     * in local or default wpleasefile.json file
+     * in local or default wplease.json file
      */
     function (inputs, callback) {
       utils.bot('Configure options...')

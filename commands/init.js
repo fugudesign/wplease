@@ -86,7 +86,7 @@ InitCommand.prototype.run = function (env) {
             resolve2(true)
           }
           else {
-            if (filename == 'wpleasefile.json') {
+            if (filename == 'wplease.json') {
               // For call from install script with project name in env var
               if (env.project_name) {
                 utils.addProjectNameToJson(env, env.project_name)
