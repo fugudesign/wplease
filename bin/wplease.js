@@ -4,6 +4,7 @@
 var utils = require('../lib/utils')
 var Liftoff = require('liftoff')
 var fs = require('fs')
+var path = require('path')
 var colors = require('colors')
 var exec = require('child_process').exec
 
