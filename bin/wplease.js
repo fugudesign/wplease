@@ -7,10 +7,15 @@ var fs = require('fs')
 var path = require('path')
 var colors = require('colors')
 var exec = require('child_process').exec
+var Enquirer = require('enquirer')
 
 // Set env var for ORIGINAL cwd
 // before anything touches it
 process.env.INIT_CWD = process.cwd()
+
+// create a new prompt instance
+var enquirer = new Enquirer()
+enquirer.register('confirm', require('prompt-confirm'))
 
 // Create a custom node cli
 var cli = new Liftoff({
@@ -59,14 +64,40 @@ cli.launch({
 function handleArguments (env) {
   
   if (fs.existsSync(`${env.cwd}/wpleasefile.js`) || fs.existsSync(`${env.cwd}/wpleasefile.json`)) {
-    console.log('')
-    console.log(colors.red('WARNING:'), colors.red(`The wpleasefile.js and wpleasefile.json files have changed for wplease.json`))
-    console.log(`A wpleasefile.js or wpleasefile.json was detected in your project.
-You need to update your project.
-Please run ${colors.cyan('wplease init')} or ${colors.cyan('wplease install')} and accept to init
-then update the new file with your custom config.`)
-  }
+    if (fs.existsSync(`${env.cwd}/wpleasefile.js`)) {
+      console.log('')
+      console.log(colors.bold.red('WARNING:'), colors.red(`The wpleasefile.js file has changed for wplease.json`))
+      console.log(`A wpleasefile.js was detected in your project.`)
+      console.log(`You need to update your project.`)
+      console.log(`Please run ${colors.cyan('wplease init')} or ${colors.cyan('wplease install')} and accept to init`)
+      console.log(`then update the new file with your custom config.`)
+      baseInit(env)
+    }
   
+    if (fs.existsSync(`${env.cwd}/wpleasefile.json`)) {
+      console.log('')
+      console.log(colors.bold.red('WARNING:'), colors.red(`The wpleasefile.json file has changed for wplease.json`))
+      console.log(`A wpleasefile.json was detected in your project.`)
+      enquirer.ask({type: 'confirm', name: 'rename_config_file', message: 'Rename it', 'default': true})
+        .then(function (answers) {
+          if (answers.rename_config_file) {
+            try {
+              fs.renameSync(`${env.cwd}/wpleasefile.json`, `${env.cwd}/wplease.json`)
+              console.log('Success:', 'renamed wpleasefile.json to wplease.json')
+              baseInit(env)
+            } catch (err) {
+              console.log(err)
+              baseInit(env)
+            }
+          }
+        })
+    }
+  } else {
+    baseInit(env)
+  }
+}
+
+function baseInit (env) {
   // Use the default wplease.json if local one not exists
   if (!env.configPath) {
     env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wplease.json`)
