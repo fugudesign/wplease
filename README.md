@@ -63,22 +63,27 @@ This command suggests you to create or override thoses files into your project:
 - The `.gitattributes` file.
 - The `.editorconfig` file.
 
-#### Warning
-
-Since version 1.0.10, the wpleasefile.js became wpleasefile.json. Please run the init script to generate the new file, then update your config.
+> **Warning:**
+> Since version 1.0.10, the wpleasefile.js became wpleasefile.json. Please run the init script to generate the new file, then update your config.
 
 ### Customize your Wordpress config
 
 Then edit the `wpleasefile.json` to customize your Wordpress install.
 For example, your can simply specify a custom [plugins](https://wordpress.org/plugins/) list:
-```javascript
-module.exports = {
-  'plugins': [
-    'wp-edit',
-    'maintenance-switch'
+```json
+{
+  "themes": [
+    "@my-project"
+  ],
+  "plugins": [
+    "wp-edit",
+    "maintenance-switch",
+    "@my-project"
   ]
-};
+}
 ```
+> **Note:** 
+> Custom themes and plugins need to be prefixed by "@". ("custom" means that the extension does not exist on the Wordpress repository)
 
 ### Build Wordpress in your project
 
