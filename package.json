@@ -2,6 +2,7 @@
   "name": "wplease",
   "version": "1.0.14",
   "description": "Automate Wordpress generation and development from your dev repository.",
+  "keywords": ["wordpress", "wp", "toolkit", "wp-cli", "automation", "build", "scaffold", "update"],
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
