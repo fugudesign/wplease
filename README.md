@@ -16,6 +16,8 @@ WPlease is a toolkit for Wordpress development that allow you to:
 
 > Generate a custom theme and plugin on install and auto gitignore it
 
+> Update (add/remove) plugins and themes from the lists in wplease.json in one command line
+
 > Remove all gitignored files from the project in on command line
 
 ## Getting Started
@@ -24,9 +26,9 @@ To build a Wordpress instance with WPlease, you must have a Wordpress operating 
 
 ### Prerequisites
 
-* Apache web server (2 recommended)
-* PHP 5.6 or higher (7.0 recommended)
-* MySQL server 5.x with a database user (or MariaDB)
+* [Apache](https://httpd.apache.org/download.cgi) web server
+* [MySQL](https://dev.mysql.com/downloads/installer/) server (or MariaDB)
+* [PHP](http://php.net/manual/en/install.php) 5.6 or higher (7.0 recommended)
 * [Node JS](https://nodejs.org/)
 * [WP-CLI](https://wp-cli.org/)
 
