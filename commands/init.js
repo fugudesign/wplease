@@ -42,24 +42,30 @@ InitCommand.prototype.run = function (env) {
           })
             .then(function (answers) {
               if (answers[`override_init_file_${i}`]) {
-                copyInitFile(template, copy, filename, next)
-                if (files.length === i) {
-                  resolve(true)
-                }
+                copyInitFile(template, copy, filename)
+                  .then(res => {
+                    if(files.length === i) {
+                      resolve(true)
+                    }
+                    next()
+                  })
               } else {
                 console.log(`Success: existing ${filename} kept in project.`)
                 console.log('')
-                if (files.length === i) {
+                if(files.length === i) {
                   resolve(true)
                 }
                 next()
               }
             })
         } else {
-          copyInitFile(template, copy, filename, next)
-          if (files.length === i) {
-            resolve(true)
-          }
+          copyInitFile(template, copy, filename)
+            .then(res => {
+              if(files.length === i) {
+                resolve(true)
+              }
+              next()
+            })
         }
       },
       function (err, transformedItems) {
@@ -71,15 +77,56 @@ InitCommand.prototype.run = function (env) {
     )
     
     // Function to copy template file to destination
-    function copyInitFile (template, copy, filename, next) {
-      fs.copyFile(template, copy, function (err) {
-        if (err) console.log(err)
-        else {
-          console.log(`Success: ${filename} was generated in project.`)
-          console.log('')
-        }
-        next()
-      })
+    function copyInitFile (template, copy, filename) {
+      return new Promise(((resolve2, reject2) => {
+        var jsonUpdate
+        fs.copyFile(template, copy, function (err) {
+          if (err) {
+            console.log(err)
+            resolve2(true)
+          }
+          else {
+            if (filename == 'wpleasefile.json') {
+              // For call from install script with project name in env var
+              if (env.project_name) {
+                utils.addProjectNameToJson(env.cwd, env.project_name)
+                  .then((res) => {
+                    console.log(`Success: ${filename} was generated in project.`)
+                    console.log('')
+                    resolve2(true)
+                  })
+              }
+              // If current wpleasefile don't contains project name
+              else if (!env.settings.name) {
+                enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
+                  .then(function (answers) {
+                    utils.addProjectNameToJson(env.cwd, answers.project)
+                      .then((res) => {
+                        console.log(`Success: ${filename} was generated in project.`)
+                        console.log('')
+                        resolve2(true)
+                      })
+                  })
+              }
+              // If current wpleasefile already contains project name
+              else {
+                utils.addProjectNameToJson(env.cwd, env.settings.name)
+                  .then((res) => {
+                    console.log(`Success: ${filename} was generated in project.`)
+                    console.log('')
+                    resolve2(true)
+                  })
+              }
+            }
+            // If file is not wpleasefile
+            else {
+              console.log(`Success: ${filename} was generated in project.`)
+              console.log('')
+              resolve2(true)
+            }
+          }
+        })
+      }))
     }
   })
   

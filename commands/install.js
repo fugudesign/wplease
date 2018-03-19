@@ -15,9 +15,10 @@ enquirer.register('confirm', require('prompt-confirm'))
 
 // Command
 function InstallCommand () {}
+
 InstallCommand.prototype.run = function (env) {
   async.waterfall([
-  
+    
     /**
      * Check for the project name as param
      */
@@ -47,6 +48,7 @@ InstallCommand.prototype.run = function (env) {
       enquirer.ask({type: 'confirm', name: 'init', message: 'Initialize project', 'default': false})
         .then(function (answers) {
           if (answers.init) {
+            env.project_name = answers.project
             InitScript.run(env)
               .then((res) => {
                 console.log('')
@@ -93,7 +95,7 @@ InstallCommand.prototype.run = function (env) {
         callback(null, inputs)
       }
       
-      function installWordpress() {
+      function installWordpress () {
         utils.bot('Getting Wordpress...')
         wp('core download', {
           verbose: true,
@@ -124,6 +126,7 @@ InstallCommand.prototype.run = function (env) {
         console.log('')
         createConfig()
       }
+      
       function createConfig () {
         utils.bot('Defining database settings...')
         var project = inputs ? inputs.project : 'wp' + Math.random().toString(36).substr(2, 8)
@@ -231,7 +234,7 @@ InstallCommand.prototype.run = function (env) {
         }
       }
       
-      function defineSiteSettings() {
+      function defineSiteSettings () {
         utils.bot('Defining site and admin settings...')
         var project = inputs.project
         var uniqPass = Math.random().toString(36).substr(2, 8)
@@ -246,7 +249,7 @@ InstallCommand.prototype.run = function (env) {
         enquirer.ask(questions)
           .then(function (answers) {
             console.log('')
-      
+            
             if (answers) {
               callback(null, answers)
             }
@@ -488,10 +491,12 @@ InstallCommand.prototype.run = function (env) {
         wp('plugin uninstall akismet', {verbose: true})
         // Remove default themes
         if (inputs.generate_theme) {
-          var themes = wp('theme list', {flags:{
+          var themes = wp('theme list', {
+            flags: {
               'status': 'inactive',
               'format': 'json'
-            }})
+            }
+          })
           console.log(themes)
         }
         // Remove default posts
