@@ -63,6 +63,10 @@ This command suggests you to create or override thoses files into your project:
 - The `.gitattributes` file.
 - The `.editorconfig` file.
 
+#### Warning
+
+Since version 1.0.10, the wpleasefile.js became wpleasefile.json. Please run the init script to generate the new file, then update your config.
+
 ### Customize your Wordpress config
 
 Then edit the `wpleasefile.json` to customize your Wordpress install.
