@@ -83,7 +83,7 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
 }
 ```
 > **Note:** 
-> Custom themes and plugins need to be prefixed by "@". ("custom" means that the extension does not exist on the Wordpress repository)
+> Custom themes and plugins need to be prefixed by "@". "Custom" means that the extension does not exist on the Wordpress repository. The `wplease install` command add it on theme or plugin generation but alternatively you can fill it manually in your wpleasefile.json.
 
 ### Build Wordpress in your project
 
