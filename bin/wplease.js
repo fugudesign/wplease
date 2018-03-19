@@ -20,7 +20,7 @@ enquirer.register('confirm', require('prompt-confirm'))
 // Create a custom node cli
 var cli = new Liftoff({
   name: 'wplease',
-  configName: 'wplease.json'
+  configName: 'wplease'
 })
 
 // Exit with 0 or 1
@@ -98,11 +98,12 @@ function handleArguments (env) {
 }
 
 function baseInit (env) {
+  
   // Use the default wplease.json if local one not exists
   if (!env.configPath) {
     env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wplease.json`)
   }
-  
+  console.log(env)
   // Get the settings
   env.settings = utils.getSettings(env.configPath)
   
