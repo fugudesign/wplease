@@ -17,11 +17,8 @@ enquirer.register('confirm', require('prompt-confirm'))
 function InstallCommand () {}
 
 InstallCommand.prototype.run = function (env) {
-  // Get the settings
-  var settings = utils.getSettings(env.configPath)
-  
   async.waterfall([
-  
+    
     /**
      * Check for the project name as param
      */
@@ -31,10 +28,15 @@ InstallCommand.prototype.run = function (env) {
         enquirer.answers.project = params[0]
         callback(null, enquirer.answers)
       } else {
-        enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
-          .then(function (answers) {
-            callback(null, answers)
-          })
+        if (env.settings.name) {
+          enquirer.answers.project = env.settings.name
+          callback(null, enquirer.answers)
+        } else {
+          enquirer.ask({type: 'input', name: 'project', message: 'Project name', 'default': 'my-website'})
+            .then(function (answers) {
+              callback(null, answers)
+            })
+        }
       }
     },
     
@@ -46,8 +48,10 @@ InstallCommand.prototype.run = function (env) {
       enquirer.ask({type: 'confirm', name: 'init', message: 'Initialize project', 'default': false})
         .then(function (answers) {
           if (answers.init) {
+            env.project_name = answers.project
             InitScript.run(env)
               .then((res) => {
+                console.log('')
                 callback(null, answers)
               })
               .catch((err) => {
@@ -55,6 +59,7 @@ InstallCommand.prototype.run = function (env) {
                 callback(null, answers)
               })
           } else {
+            console.log('')
             callback(null, answers)
           }
         })
@@ -65,40 +70,64 @@ InstallCommand.prototype.run = function (env) {
      * Get the last Wordpress version
      */
     function (inputs, callback) {
-      var version = wp('core version')
-      if (Boolean(version)) {
-        enquirer.ask({type: 'confirm', name: 'override_wp', message: 'Override Wordpress', 'default': false})
-          .then(function (answers) {
-            if (answers.override_wp) {
-              utils.bot('Getting Wordpress...')
-              wp('core download', {
-                verbose: true,
-                flags: {
-                  locale: settings.config.locale,
-                  force: true
-                }
-              })
-            } else {
-              console.log('')
-            }
-            callback(null, answers)
-          })
-      } else {
+      try {
+        utils.bot('Checking Wordpress...')
+        var version = wp('core version')
+        if (Boolean(version)) {
+          enquirer.ask({type: 'confirm', name: 'override_wp', message: 'Override Wordpress', 'default': false})
+            .then(function (answers) {
+              if (answers.override_wp) {
+                console.log('')
+                installWordpress()
+              } else {
+                console.log('')
+              }
+              callback(null, answers)
+            })
+        } else {
+          console.log('')
+          installWordpress()
+          callback(null, inputs)
+        }
+      } catch (err) {
         console.log('')
+        installWordpress()
         callback(null, inputs)
+      }
+      
+      function installWordpress () {
+        utils.bot('Getting Wordpress...')
+        wp('core download', {
+          verbose: true,
+          flags: {
+            locale: env.settings.config.locale,
+            force: true
+          }
+        })
       }
     },
     
     /**
      * DATABASE SETTINGS
-     * Ask for database settings
+     * Ask for database env.settings
      */
     function (inputs, callback) {
-      var config = wp('config path')
-      if (Boolean(config)) {
-        inputs.config = true
-        callback(null, inputs)
-      } else {
+      try {
+        utils.bot('Checking config...')
+        var config = wp('config path')
+        if (Boolean(config)) {
+          inputs.config = true
+          callback(null, inputs)
+        } else {
+          console.log('')
+          createConfig()
+        }
+      } catch (err) {
+        console.log('')
+        createConfig()
+      }
+      
+      function createConfig () {
         utils.bot('Defining database settings...')
         var project = inputs ? inputs.project : 'wp' + Math.random().toString(36).substr(2, 8)
         var prefix = project.substr(0, 4)
@@ -128,10 +157,10 @@ InstallCommand.prototype.run = function (env) {
         wp('config create', {
           verbose: true,
           input: `
-          define('WP_DEBUG', false);
-          define('WP_POST_REVISIONS', ${settings.config.revisions});
-          define('DISABLE_WP_CRON', false);
-          define('DISALLOW_FILE_EDIT', true);
+          define('WP_DEBUG', ${env.settings.config.debug});
+          define('WP_POST_REVISIONS', ${env.settings.config.post_revisions});
+          define('DISABLE_WP_CRON', ${env.settings.config.disable_cron});
+          define('DISALLOW_FILE_EDIT', ${env.settings.config.disallow_file_edit});
         `,
           flags: {
             'dbname': inputs.dbname,
@@ -189,17 +218,23 @@ InstallCommand.prototype.run = function (env) {
     
     /**
      * WORDPRESS SETTINGS
-     * Ask for site and admin settings
+     * Ask for site and admin env.settings
      */
     function (inputs, callback) {
       inputs.need_install = false
-      try {
-        wp('core is-installed')
-        callback(null, inputs)
-      } catch (err) {
-        inputs.need_install = true
+      if (!inputs.keep_db) {
+        defineSiteSettings()
+      } else {
+        try {
+          wp('core is-installed')
+          callback(null, inputs)
+        } catch (err) {
+          inputs.need_install = true
+          defineSiteSettings()
+        }
       }
-      if (inputs.need_install || !inputs.keep_db) {
+      
+      function defineSiteSettings () {
         utils.bot('Defining site and admin settings...')
         var project = inputs.project
         var uniqPass = Math.random().toString(36).substr(2, 8)
@@ -219,8 +254,6 @@ InstallCommand.prototype.run = function (env) {
               callback(null, answers)
             }
           })
-      } else {
-        callback(null, inputs)
       }
     },
     
@@ -242,17 +275,19 @@ InstallCommand.prototype.run = function (env) {
           }
         })
         callback(null, inputs)
+      } else {
+        callback(null, inputs)
       }
     },
     
     /**
      * PLUGINS
      * Install plugins from the list in local
-     * or default wpleasefile.js file
+     * or default wpleasefile.json file
      */
     function (inputs, callback) {
       utils.bot('Installing plugins...')
-      settings.plugins.forEach(function (plugin) {
+      env.settings.plugins.forEach(function (plugin) {
         wp(`plugin install ${plugin}`, {verbose: true, flags: {activate: true}})
       })
       callback(null, inputs)
@@ -431,12 +466,12 @@ InstallCommand.prototype.run = function (env) {
     /**
      * THEMES
      * Install themes from the list in local
-     * or default wpleasefile.js file
+     * or default wpleasefile.json file
      */
     function (inputs, callback) {
-      if (settings.themes.length) {
+      if (env.settings.themes.length) {
         utils.bot('Installing themes...')
-        settings.themes.forEach(function (theme) {
+        env.settings.themes.forEach(function (theme) {
           wp(`theme install ${theme}`, {verbose: true})
         })
       }
@@ -456,10 +491,12 @@ InstallCommand.prototype.run = function (env) {
         wp('plugin uninstall akismet', {verbose: true})
         // Remove default themes
         if (inputs.generate_theme) {
-          var themes = wp('theme list', {flags:{
+          var themes = wp('theme list', {
+            flags: {
               'status': 'inactive',
               'format': 'json'
-            }})
+            }
+          })
           console.log(themes)
         }
         // Remove default posts
@@ -472,7 +509,7 @@ InstallCommand.prototype.run = function (env) {
     /**
      * OPTIONS
      * Create a homepage and create options from the list
-     * in local or default wpleasefile.js file
+     * in local or default wpleasefile.json file
      */
     function (inputs, callback) {
       utils.bot('Configure options...')
@@ -483,8 +520,8 @@ InstallCommand.prototype.run = function (env) {
           post_author: 1
         }
       })
-      if (settings.options) {
-        Object.entries(settings.options).forEach(function (option) {
+      if (env.settings.options) {
+        Object.entries(env.settings.options).forEach(function (option) {
           wp(`option update ${option[0]} "${option[1]}"`, {verbose: true})
         })
       }
@@ -496,7 +533,7 @@ InstallCommand.prototype.run = function (env) {
      * Activate the Wordpress rewriting
      */
     function (inputs, callback) {
-      utils.bot('Activating premalink structure...')
+      utils.bot('Activating permalink structure...')
       wp('rewrite structure "/%postname%/"', {verbose: true, flags: {hard: true}})
       callback(null, inputs)
     },

@@ -12,11 +12,11 @@ WPlease is a toolkit for Wordpress development that allow you to:
 
 > Build a Wordpress working instance from scratch in on command line
 
-> Build a preconfigured Wordpress working instance from your github repo and only keep your pecific code
+> Build a preconfigured Wordpress working instance from your github repo that contains only your pecific code
 
-> Remove all Wordpress files except your specific code
+> Generate a custom theme and plugin on install and auto gitignore it
 
-> Generate a custom theme and plugin on install and autoignore it
+> Remove all gitignored files from the project in on command line
 
 ## Getting Started
 
@@ -31,11 +31,11 @@ To build a Wordpress instance with WPlease, you must have a Wordpress operating 
 * [WP-CLI](https://wp-cli.org/)
 
 ### Caution
-> For existant repo please backup your files and database before using WPlease.
+> For existing repos, please backup your files and database before using WPlease.
 
 ### Installing
 
-You need to install this module as a global module.
+You should install this module as a global module.
 
 ```
 npm install -g wplease
@@ -57,13 +57,15 @@ wplease install
 ```
 wplease init
 ```
-This command create into your project: 
-- The `wpleasefile.js` to customize your Wordpress installation 
-- The `.gitignore` to ignore the whole wordpress code.
+This command suggests you to create or override thoses files into your project: 
+- The `wpleasefile.json` file to customize your Wordpress installation 
+- The `.gitignore` file to ignore the whole wordpress code.
+- The `.gitattributes` file.
+- The `.editorconfig` file.
 
 ### Customize your Wordpress config
 
-Then edit the `wpleasefile.js` to customize your Wordpress install.
+Then edit the `wpleasefile.json` to customize your Wordpress install.
 For example, your can simply specify a custom [plugins](https://wordpress.org/plugins/) list:
 ```javascript
 module.exports = {
@@ -84,7 +86,7 @@ wplease install
 
 ## Script prompts
 
-During installing, the script will ask you about the database and site creditentials. Your Wordpress instance will be quickly ready to use.
+During installing, the script will ask you about several informations like the database and site creditentials. Your Wordpress instance will be quickly ready to use.
 
 ```
 ...

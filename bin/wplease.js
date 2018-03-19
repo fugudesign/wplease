@@ -55,10 +55,13 @@ cli.launch({
 
 function handleArguments(env) {
   
-  // Use the default wpleasefile.js if local one not exists
+  // Use the default wpleasefile.json if local one not exists
   if (!env.configPath) {
-    env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.js`);
+    env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wpleasefile.json`);
   }
+  
+  // Get the settings
+  env.settings = utils.getSettings(env.configPath);
 
   // Chdir before requiring wpleasefile to make sure
   // we let them chdir as needed
