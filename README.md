@@ -85,12 +85,41 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
 > **Note:** 
 > Custom themes and plugins need to be prefixed by "@". "Custom" means that the extension does not exist on the Wordpress repository. The `wplease install` command add it on theme or plugin generation but alternatively you can fill it manually in your wpleasefile.json.
 
+### Sync your Wordpress themes and plugins
+
+```
+wplease sync
+```
+
+This command suggests you to synchronize your plugins and themes from your wpleasefile.json lists.
+
+```
+ ? What to sync
+ ❯◉ all
+  ◯ plugins
+  ◯ themes
+```
+
+> **Note:**
+> You can add the sync type to skip prompts.  
+
+```
+wplease sync plugins
+```
+
 ### Build Wordpress in your project
 
 Then you can run your custom install.
 
 ```
 wplease install
+```
+
+> **Note:**
+> You can add your project name to skip prompts.  
+
+```
+wplease install my-project
 ```
 
 ## Script prompts
