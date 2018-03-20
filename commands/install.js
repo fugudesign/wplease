@@ -282,18 +282,6 @@ InstallCommand.prototype.run = function (env) {
     },
     
     /**
-     * PLUGINS
-     * Install plugins from the list in local
-     * or default wplease.json file
-     */
-    function (inputs, callback) {
-      SyncScript.run(env, 'plugins')
-        .then(res => {
-          callback(null, inputs)
-        })
-    },
-    
-    /**
      * CUSTOM THEME
      * Ask for a custom theme creation or usage,
      * add its rule in gitignore file
@@ -496,6 +484,18 @@ InstallCommand.prototype.run = function (env) {
           }
         })
       }
+    },
+  
+    /**
+     * PLUGINS
+     * Install plugins from the list in local
+     * or default wplease.json file
+     */
+    function (inputs, callback) {
+      SyncScript.run(env, 'plugins')
+        .then(res => {
+          callback(null, inputs)
+        })
     },
     
     /**

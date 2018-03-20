@@ -105,7 +105,7 @@ function baseInit (env) {
   }
   
   // Get the settings
-  env.settings = utils.getSettings(env.configPath)
+  env.settings = utils.getSettings(env)
   
   // Chdir before requiring wpleasefile to make sure
   // we let them chdir as needed

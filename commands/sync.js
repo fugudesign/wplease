@@ -21,6 +21,7 @@ enquirer.register('radio', require('prompt-radio'))
 function SyncCommand () {}
 
 SyncCommand.prototype.run = function (env, type) {
+  env.settings = utils.getSettings(env)
   return new Promise((resolve, reject) => {
     if (!type) {
       var params = utils.cliCommandParams()
