@@ -328,7 +328,7 @@ InstallCommand.prototype.run = function (env) {
                   activate.on('close', function (code, signal) {
               
                     // Add custom theme to wpleasefile
-                    utils.addCustomThemeToJson(env, answers.theme_slug)
+                    utils.addThemeToJson(env, answers.theme_slug, true)
                       .then(function (res) {
                   
                         // Autoinject ungitignore for theme
@@ -355,7 +355,7 @@ InstallCommand.prototype.run = function (env) {
                   console.log('')
             
                   // Add custom theme to wpleasefile
-                  utils.addCustomThemeToJson(env.cwd, answers.theme_slug)
+                  utils.addThemeToJson(env.cwd, answers.theme_slug, true)
                     .then(res => {
                 
                       // Autoinject ungitignore for theme
@@ -428,7 +428,7 @@ InstallCommand.prototype.run = function (env) {
                   activate.on('close', function (code, signal) {
                 
                     // Add custom plugin to wpleasefile
-                    utils.addCustomPluginToJson(env, answers.plugin_slug)
+                    utils.addPluginToJson(env, answers.plugin_slug, true)
                       .then(function (res) {
                         // Autoinject ungitignore for plugin
                         utils.ignoreExtension(env, answers.plugin_slug, 'plugin')
@@ -459,7 +459,7 @@ InstallCommand.prototype.run = function (env) {
                   console.log('')
               
                   // Add custom plugin to wpleasefile
-                  utils.addCustomPluginToJson(env, answers.plugin_slug)
+                  utils.addPluginToJson(env, answers.plugin_slug, true)
                     .then(function (res) {
                   
                       // Autoinject ungitignore for plugin
