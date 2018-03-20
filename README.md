@@ -5,22 +5,23 @@
 ![node](https://img.shields.io/node/v/passport.svg?style=flat-square)
 [![GitHub license](https://img.shields.io/github/license/fugudesign/wplease.svg?style=flat-square)](https://github.com/fugudesign/wplease/blob/master/LICENSE)
 
+WPlease is a toolkit for Wordpress development which allows to keep only specific code in a Wordpress development repository and rebuild or manipulate it quickly.
 
 ## Features
 
-WPlease is a toolkit for Wordpress development that allow you to:
+With WPlease, in one command line you can:
 
-> Build a Wordpress working instance from scratch in on command line
+> Build a Wordpress working instance from scratch
 
 > Build a preconfigured Wordpress working instance from your github repo that contains only your pecific code
 
 > Generate a custom theme and plugin on install and auto gitignore it
 
-> Update (add/remove) plugins and themes from the lists in wplease.json in one command line
+> Update (add/remove) plugins and themes from the lists in wplease.json
 
-> Add or remove a theme or a plugin from files and from wplease.json in one command line
+> Add or remove a theme or a plugin from files and from wplease.json
 
-> Remove all gitignored files from the project in on command line
+> Remove all gitignored files from the project
 
 ## Getting Started
 
