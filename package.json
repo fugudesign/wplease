@@ -1,6 +1,6 @@
 {
   "name": "wplease",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Automate Wordpress generation and development from your dev repository.",
   "keywords": [
     "wordpress",
