@@ -5,7 +5,7 @@
 ![node](https://img.shields.io/node/v/passport.svg?style=flat-square)
 [![GitHub license](https://img.shields.io/github/license/fugudesign/wplease.svg?style=flat-square)](https://github.com/fugudesign/wplease/blob/master/LICENSE)
 
-WPlease is a toolkit for Wordpress development which allows to keep only specific code in a Wordpress development repository and rebuild or manipulate it quickly.
+WPlease is a toolkit for Wordpress development which allows to keep only specific code in a Wordpress development repository and rebuild or manipulate it quickly from a repo specific config file.
 
 ## Features
 

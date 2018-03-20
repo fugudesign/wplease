@@ -10,7 +10,8 @@
     "automation",
     "build",
     "scaffold",
-    "update"
+    "update",
+    "cli"
   ],
   "main": "index.js",
   "scripts": {
