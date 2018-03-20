@@ -103,7 +103,7 @@ function baseInit (env) {
   if (!env.configPath) {
     env.configPath = path.resolve(`${path.dirname(__dirname)}/init/_wplease.json`)
   }
-  console.log(env)
+  
   // Get the settings
   env.settings = utils.getSettings(env.configPath)
   

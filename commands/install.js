@@ -308,13 +308,13 @@ InstallCommand.prototype.run = function (env) {
       } else {
         // Ask for generate theme
         enquirer.ask([
-          {type: 'confirm', name: 'generate_plugin', message: 'Custom theme'}
+          {type: 'confirm', name: 'generate_theme', message: 'Custom theme'}
         ])
           .then(function (answers) {
-            if (answers.generate_plugin) {
+            if (answers.generate_theme) {
         
               // Ask for the theme slug
-              enquirer.ask([{type: 'input', name: 'slug', message: 'Theme slug', 'default': inputs.project}])
+              enquirer.ask([{type: 'input', name: 'theme_slug', message: 'Theme slug', 'default': inputs.project}])
                 .then(function (answers) {
                   activateTheme(answers)
                 })
@@ -529,7 +529,6 @@ InstallCommand.prototype.run = function (env) {
               'format': 'json'
             }
           })
-          console.log(themes)
         }
         // Remove default posts
         wp('post delete 1', {verbose: true, flags: {force: true}})
