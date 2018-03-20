@@ -18,6 +18,8 @@ WPlease is a toolkit for Wordpress development that allow you to:
 
 > Update (add/remove) plugins and themes from the lists in wplease.json in one command line
 
+> Add or remove a theme or a plugin from files and from wplease.json in one command line
+
 > Remove all gitignored files from the project in on command line
 
 ## Getting Started
@@ -100,6 +102,32 @@ For example, your can simply specify a custom [plugins](https://wordpress.org/pl
 > **Note:** 
 > Custom themes and plugins need to be prefixed by "@". "Custom" means that the extension does not exist on the Wordpress repository. The `wplease install` command add it on theme or plugin generation but alternatively you can fill it manually in your wplease.json.
 
+### Build Wordpress in your project
+
+Then you can run your custom install.
+
+```bash
+wplease install
+```
+
+> **Tip:**
+> You can directly add your project name to skip prompts. `wplease install my-project`
+
+### Add or remove a Wordpress theme or plugin
+
+You can specify a type of extension and the extension name.
+
+```bash
+wplease add plugin user-role-editor
+```
+
+```bash
+wplease remove theme origin
+```
+
+> **Tip:** 
+> You simply can call the short command like `wplease add` or `wplease remove` and the script ask your for the extension type and name.
+
 ### Sync your Wordpress themes and plugins
 
 ```bash
@@ -115,27 +143,8 @@ This command suggests you to synchronize your plugins and themes from your wplea
   ◯ themes
 ```
 
-> **Note:**
-> You can add the sync type to skip prompts.  
-
-```bash
-wplease sync plugins
-```
-
-### Build Wordpress in your project
-
-Then you can run your custom install.
-
-```bash
-wplease install
-```
-
-> **Note:**
-> You can add your project name to skip prompts.  
-
-```bash
-wplease install my-project
-```
+> **Tip:**
+> You can directly add the sync type to skip prompts. `wplease sync plugins`
 
 ## Script prompts
 
