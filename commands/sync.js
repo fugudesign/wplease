@@ -59,7 +59,7 @@ SyncCommand.prototype.run = function (env, type) {
         enquirer.ask({
           type: 'radio',
           name: 'sync_type',
-          message: 'What to sync',
+          message: 'What to sync (space to select)',
           default: 'all',
           choices: [
             'all',

@@ -40,7 +40,7 @@ AddCommand.prototype.run = function (env, type, slug) {
       enquirer.ask({
         type: 'radio',
         name: 'add_type',
-        message: 'What to add',
+        message: 'What to add (space to select)',
         default: 'plugin',
         choices: [
           'plugin',
@@ -60,13 +60,13 @@ AddCommand.prototype.run = function (env, type, slug) {
           enquirer.ask({
             type: 'input',
             name: 'extension_slug',
-            message: `Name of your ${type}`
+            message: `Name of the ${type}`
           })
             .then(function (answers) {
               if (answers.extension_slug) {
                 switchType(type, answers.extension_slug)
               } else {
-                console.log('Warning:', `You must specify a ${type} name.`)
+                console.log('Warning:', `You must specify a ${type} to add.`)
               }
             })
         }
