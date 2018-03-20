@@ -122,24 +122,42 @@ SyncCommand.prototype.run = function (env, type) {
         var t = 0
         each(themes, (theme, next) => {
           t++
+          console.log('Warning:', `${theme.name} theme is not present in your wplease.json.`)
           enquirer.ask({
-            type: 'confirm',
-            name: `uninstall_theme_${theme.name}`,
-            message: `Uninstall "${theme.name}"`,
-            default: true
+            type: 'radio',
+            name: `action_to_${theme.name}`,
+            message: 'What to do with (space to select)',
+            default: 'save',
+            choices: [
+              'save',
+              'save as custom',
+              'delete'
+            ]
           })
             .then(function (answers) {
-              if (answers[`uninstall_theme_${theme.name}`]) {
-                wp(`theme delete ${theme.name}`, {verbose: true})
-                if (themes.length == t) {
-                  resolveT(true)
+              var action = answers[`action_to_${theme.name}`]
+              if (action) {
+                switch (action) {
+                  default:
+                  case 'save':
+                  case 'save as custom':
+                    utils.addThemeToJson(env, theme.name, action === 'save as custom')
+                      .then(function (res) {
+                        if (themes.length == t) {
+                          resolveT(true)
+                        }
+                        next()
+                      })
+                    break
+          
+                  case 'delete':
+                    wp(`theme uninstall ${theme.name}`, {verbose: true, flags: {deactivate: true}})
+                    if (themes.length == t) {
+                      resolveT(true)
+                    }
+                    next()
+                    break
                 }
-                next()
-              } else {
-                if (themes.length == t) {
-                  resolveT(true)
-                }
-                next()
               }
             })
         })
@@ -150,11 +168,11 @@ SyncCommand.prototype.run = function (env, type) {
       return new Promise((resolveP, rejectP) => {
         utils.bot('Sync plugins...')
         // Install plugins filled in wpleasefile
-        env.settings.plugins.forEach(function (plugin) {
+        /*env.settings.plugins.forEach(function (plugin) {
           if (!plugin.startsWith('@')) {
             wp(`plugin install ${plugin}`, {verbose: true, flags: {activate: true}})
           }
-        })
+        })*/
         // Ask for other plugins deletion
         var plugins = wp('plugin list', {flags: {format: 'json'}})
         plugins = plugins.filter(plugin => {
@@ -166,24 +184,44 @@ SyncCommand.prototype.run = function (env, type) {
         var p = 0
         each(plugins, (plugin, next) => {
           p++
+          console.log('Warning:', `${plugin.name} plugin is not present in your wplease.json.`)
           enquirer.ask({
-            type: 'confirm',
-            name: `uninstall_plugin_${plugin.name}`,
-            message: `Uninstall "${plugin.name}"`,
-            default: true
+            type: 'radio',
+            name: `action_to_${plugin.name}`,
+            message: 'What to do with (space to select)',
+            default: 'save',
+            choices: [
+              'save',
+              'save as custom',
+              'delete'
+            ]
           })
             .then(function (answers) {
-              if (answers[`uninstall_plugin_${plugin.name}`]) {
-                wp(`plugin uninstall ${plugin.name}`, {verbose: true, flags: {deactivate: true}})
-                if (plugins.length == p) {
-                  resolveP(true)
+              var action = answers[`action_to_${plugin.name}`]
+              if (action) {
+                switch (action) {
+                  default:
+                  case 'save':
+                  case 'save as custom':
+                    // TODO: auto add as custom if not in wordpress repo
+                    //var official = wp(`plugin search ${plugins.name}`, ['--per-page=1 ', '--field=slug', '--quiet'])
+                    utils.addPluginToJson(env, plugin.name, action === 'save as custom')
+                      .then(function (res) {
+                        if (plugins.length == p) {
+                          resolveP(true)
+                        }
+                        next()
+                      })
+                    break
+                  
+                  case 'delete':
+                    wp(`plugin uninstall ${plugin.name}`, {verbose: true, flags: {deactivate: true}})
+                    if (plugins.length == p) {
+                      resolveP(true)
+                    }
+                    next()
+                    break
                 }
-                next()
-              } else {
-                if (plugins.length == p) {
-                  resolveP(true)
-                }
-                next()
               }
             })
         })
