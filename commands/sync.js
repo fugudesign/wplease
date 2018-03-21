@@ -232,6 +232,7 @@ SyncCommand.prototype.run = function (env, type) {
                       })
                         .then(function (answers) {
                           if (answers.download_url === 'N') {
+                            console.log('')
                             if (env.settings.plugins.length === i) {
                               handleNewPlugins(resolveP)
                             }
