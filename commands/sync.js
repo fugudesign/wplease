@@ -107,60 +107,106 @@ SyncCommand.prototype.run = function (env, type) {
       return new Promise((resolveT, rejectT) => {
         utils.bot('Sync themes...')
         // Install themes filled in wpleasefile
-        env.settings.themes.forEach(function (theme) {
+          var i = 0
+        each(env.settings.themes, (theme, next) => {
+          i++
           if (!theme.startsWith('@')) {
-            wp(`theme install ${theme}`, {verbose: true, flags: {activate: true}})
+            console.log(colors.bold(theme))
+            var install = wp(`theme install "${plugin}"`, {async: true, verbose: true, flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}})
+            install.on('close', (code) => {
+              if (env.settings.themes.length === i) {
+                handleNewThemes(resolveT)
+              }
+              next()
+            })
+          } else {
+            if (env.settings.themes.length === i) {
+              handleNewThemes(resolveT)
+            }
+            next()
           }
         })
-        // Ask for other themes deletion
-        var themes = wp('theme list', { flags: {format: 'json'} })
-        themes = themes.filter(theme => {
-          var isCustom = env.settings.themes.indexOf(`@${theme.name}`) > -1
-          var isInSettings = env.settings.themes.indexOf(theme.name) > -1
-          return !isInSettings && !isCustom
+      })
+    }
+  
+    function handleNewThemes (promiseResolve) {
+      // Ask for other themes deletion
+      var themes = wp('theme list', { flags: {format: 'json', 'skip-plugins': true, 'skip-themes': true} })
+      themes = themes.filter(theme => {
+        var isCustom = env.settings.themes.indexOf(`@${theme.name}`) > -1
+        var isInSettings = env.settings.themes.indexOf(theme.name) > -1
+        return !isInSettings && !isCustom
+      })
+      var t = 0
+      each(themes, (theme, next) => {
+        t++
+        console.log('Warning:', `${theme.name} theme is not present in your wplease.json.`)
+        enquirer.ask({
+          type: 'radio',
+          name: `action_to_${theme.name}`,
+          message: 'What to do with (space to select)',
+          default: 'save',
+          choices: [
+            'save',
+            'save as custom',
+            'delete'
+          ]
         })
-        var t = 0
-        each(themes, (theme, next) => {
-          t++
-          console.log('Warning:', `${theme.name} theme is not present in your wplease.json.`)
+          .then(function (answers) {
+            var action = answers[`action_to_${theme.name}`]
+            if (action) {
+              switch (action) {
+                default:
+                case 'save':
+                case 'save as custom':
+                  utils.addThemeToJson(env, theme.name, action === 'save as custom')
+                    .then(function (res) {
+                      if (themes.length == t) {
+                        promiseResolve(true)
+                      }
+                      next()
+                    })
+                  break
+            
+                case 'delete':
+                  wp(`theme uninstall ${theme.name}`, {verbose: true, flags: {deactivate: true}})
+                  if (themes.length == t) {
+                    promiseResolve(true)
+                  }
+                  next()
+                  break
+              }
+            }
+          })
+      })
+    }
+  
+    /**
+     * Filter plugin name if is premium plugin
+     * to get the download url
+     * @param plugin
+     * @returns {*}
+     */
+    function hookPremiumPlugin (plugin) {
+      return new Promise((resolve2, reject2) => {
+        if (plugin === 'advanced-custom-fields-pro') {
           enquirer.ask({
-            type: 'radio',
-            name: `action_to_${theme.name}`,
-            message: 'What to do with (space to select)',
-            default: 'save',
-            choices: [
-              'save',
-              'save as custom',
-              'delete'
-            ]
+            type: 'input',
+            name: `acf_pro_key`,
+            message: 'ACF Pro key (paste key or N to cancel)'
           })
             .then(function (answers) {
-              var action = answers[`action_to_${theme.name}`]
-              if (action) {
-                switch (action) {
-                  default:
-                  case 'save':
-                  case 'save as custom':
-                    utils.addThemeToJson(env, theme.name, action === 'save as custom')
-                      .then(function (res) {
-                        if (themes.length == t) {
-                          resolveT(true)
-                        }
-                        next()
-                      })
-                    break
-          
-                  case 'delete':
-                    wp(`theme uninstall ${theme.name}`, {verbose: true, flags: {deactivate: true}})
-                    if (themes.length == t) {
-                      resolveT(true)
-                    }
-                    next()
-                    break
-                }
+              if (answers.acf_pro_key === 'N') {
+                resolve2(plugin)
+              } else if (answers.acf_pro_key) {
+                resolve2(`http://connect.advancedcustomfields.com/index.php?p=pro&a=download&k=${answers.acf_pro_key}`)
+              } else {
+                reject2('You must specify a ACF Pro key to download and install it.')
               }
             })
-        })
+        } else {
+          resolve2(plugin)
+        }
       })
     }
     
@@ -168,63 +214,114 @@ SyncCommand.prototype.run = function (env, type) {
       return new Promise((resolveP, rejectP) => {
         utils.bot('Sync plugins...')
         // Install plugins filled in wpleasefile
-        /*env.settings.plugins.forEach(function (plugin) {
+        var i = 0
+        each(env.settings.plugins, (plugin, next) => {
+          i++
           if (!plugin.startsWith('@')) {
-            wp(`plugin install ${plugin}`, {verbose: true, flags: {activate: true}})
-          }
-        })*/
-        // Ask for other plugins deletion
-        var plugins = wp('plugin list', {flags: {format: 'json'}})
-        plugins = plugins.filter(plugin => {
-          var hasVersion = plugin.version
-          var isCustom = env.settings.plugins.indexOf(`@${plugin.name}`) > -1
-          var isInSettings = env.settings.plugins.indexOf(plugin.name) > -1
-          return hasVersion && !isInSettings && !isCustom
-        })
-        var p = 0
-        each(plugins, (plugin, next) => {
-          p++
-          console.log('Warning:', `${plugin.name} plugin is not present in your wplease.json.`)
-          enquirer.ask({
-            type: 'radio',
-            name: `action_to_${plugin.name}`,
-            message: 'What to do with (space to select)',
-            default: 'save',
-            choices: [
-              'save',
-              'save as custom',
-              'delete'
-            ]
-          })
-            .then(function (answers) {
-              var action = answers[`action_to_${plugin.name}`]
-              if (action) {
-                switch (action) {
-                  default:
-                  case 'save':
-                  case 'save as custom':
-                    // TODO: auto add as custom if not in wordpress repo
-                    //var official = wp(`plugin search ${plugins.name}`, ['--per-page=1 ', '--field=slug', '--quiet'])
-                    utils.addPluginToJson(env, plugin.name, action === 'save as custom')
-                      .then(function (res) {
-                        if (plugins.length == p) {
-                          resolveP(true)
-                        }
-                        next()
+            console.log(colors.cyan.bold(plugin))
+            hookPremiumPlugin(plugin)
+              .then(hooked => {
+                if (hooked) {
+                  var install = wp(`plugin install "${hooked}"`, {async: true, verbose: true, flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}})
+                  install.on('close', (code) => {
+                    if (code !== 0) {
+                      enquirer.ask({
+                        type: 'input',
+                        name: `download_url`,
+                        message: 'Download link (paste url or N to cancel)'
                       })
-                    break
-                  
-                  case 'delete':
-                    wp(`plugin uninstall ${plugin.name}`, {verbose: true, flags: {deactivate: true}})
-                    if (plugins.length == p) {
-                      resolveP(true)
+                        .then(function (answers) {
+                          if (answers.download_url === 'N') {
+                            if (env.settings.plugins.length === i) {
+                              handleNewPlugins(resolveP)
+                            }
+                            next()
+                          } else if (answers.download_url) {
+                            var install2 = wp(`plugin install ${answers.download_url}`, {
+                              async: true,
+                              verbose: true,
+                              flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}
+                            })
+                            install2.on('close', (code) => {
+                              if (env.settings.plugins.length === i) {
+                                handleNewPlugins(resolveP)
+                              }
+                              next()
+                            })
+                          } else {
+                            reject2('You must specify a WPML url to download and install it.')
+                          }
+                        })
+                    } else {
+                      if (env.settings.plugins.length === i) {
+                        handleNewPlugins(resolveP)
+                      }
+                      next()
                     }
-                    next()
-                    break
+                  })
                 }
-              }
-            })
+              })
+          } else {
+            if (env.settings.plugins.length === i) {
+              handleNewPlugins(resolveP)
+            }
+            next()
+          }
         })
+      })
+    }
+    
+    function handleNewPlugins (promiseResolve) {
+      // Ask for other plugins deletion
+      var plugins = wp('plugin list', {flags: {format: 'json', 'skip-plugins': true, 'skip-themes': true}})
+      plugins = plugins.filter(plugin => {
+        var hasVersion = plugin.version
+        var isCustom = env.settings.plugins.indexOf(`@${plugin.name}`) > -1
+        var isInSettings = env.settings.plugins.indexOf(plugin.name) > -1
+        return hasVersion && !isInSettings && !isCustom
+      })
+      var p = 0
+      each(plugins, (plugin, next) => {
+        p++
+        console.log('Warning:', `${plugin.name} plugin is not present in your wplease.json.`)
+        enquirer.ask({
+          type: 'radio',
+          name: `action_to_${plugin.name}`,
+          message: 'What to do with (space to select)',
+          default: 'save',
+          choices: [
+            'save',
+            'save as custom',
+            'delete'
+          ]
+        })
+          .then(function (answers) {
+            var action = answers[`action_to_${plugin.name}`]
+            if (action) {
+              switch (action) {
+                default:
+                case 'save':
+                case 'save as custom':
+                  // TODO: auto add as custom if not in wordpress repo
+                  utils.addPluginToJson(env, plugin.name, action === 'save as custom')
+                    .then(function (res) {
+                      if (plugins.length == p) {
+                        promiseResolve(true)
+                      }
+                      next()
+                    })
+                  break
+            
+                case 'delete':
+                  wp(`plugin uninstall ${plugin.name}`, {verbose: true, flags: {deactivate: true, 'skip-plugins': true, 'skip-themes': true}})
+                  if (plugins.length == p) {
+                    promiseResolve(true)
+                  }
+                  next()
+                  break
+              }
+            }
+          })
       })
     }
   })

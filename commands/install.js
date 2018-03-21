@@ -3,6 +3,8 @@
 'use strict'
 var utils = require('../lib/utils')
 var wp = require('wp-astro')
+var fs = require('fs')
+var path = require('path')
 var Enquirer = require('enquirer')
 var async = require('async')
 
@@ -226,10 +228,10 @@ InstallCommand.prototype.run = function (env) {
       if (!inputs.keep_db) {
         defineSiteSettings()
       } else {
-        try {
-          wp('core is-installed')
+        var installed = wp('core is-installed')
+        if (installed) {
           callback(null, inputs)
-        } catch (err) {
+        } else {
           inputs.need_install = true
           defineSiteSettings()
         }
@@ -280,6 +282,18 @@ InstallCommand.prototype.run = function (env) {
         callback(null, inputs)
       }
     },
+  
+    /**
+     * PLUGINS
+     * Install plugins from the list in local
+     * or default wplease.json file
+     */
+    function (inputs, callback) {
+      SyncScript.run(env, 'plugins')
+        .then(res => {
+          callback(null, inputs)
+        })
+    },
     
     /**
      * CUSTOM THEME
@@ -315,33 +329,30 @@ InstallCommand.prototype.run = function (env) {
       
       function activateTheme (answers) {
         // Check if the theme already exists
-        var exists = wp(`theme is-installed ${answers.theme_slug}`, {async: true})
-        exists.on('close', function (code, signal) {
-          if (code === 0) {
+        fs.exists(`${env.cwd}/wp-content/themes/${answers.theme_slug}/`, function(exists) {
+          if (exists) {
             console.log('Warning:', `theme ${answers.theme_slug} already exists.`)
-      
+  
             // Ask for activate the theme
             enquirer.ask([{type: 'confirm', name: 'activate_theme', message: 'Activate theme'}])
               .then(function (answers) {
                 if (answers.activate_theme) {
-                  var activate = wp(`theme activate ${answers.theme_slug}`, {async: true, verbose: true})
+                  var activate = wp(`theme activate ${answers.theme_slug}`, {async: true, verbose: true, flags:{'skip-plugins': true, 'skip-themes': true}})
                   activate.on('close', function (code, signal) {
-              
+          
                     // Add custom theme to wpleasefile
                     utils.addThemeToJson(env, answers.theme_slug, true)
                       .then(function (res) {
-                  
+              
                         // Autoinject ungitignore for theme
                         utils.ignoreExtension(env, answers.theme_slug, 'theme')
-                  
+              
                         callback(null, answers)
                       })
                   })
                 }
               })
-          }
-          // If theme not exists, ask for theme info to generate it
-          else {
+          } else {
             var name = answers.theme_slug.charAt(0).toUpperCase() + answers.theme_slug.slice(1)
             enquirer.ask([
               {type: 'input', name: 'theme_name', message: 'Theme name', 'default': name},
@@ -353,14 +364,14 @@ InstallCommand.prototype.run = function (env) {
               .then(function (answers) {
                 if (answers) {
                   console.log('')
-            
+        
                   // Add custom theme to wpleasefile
                   utils.addThemeToJson(env.cwd, answers.theme_slug, true)
                     .then(res => {
-                
+            
                       // Autoinject ungitignore for theme
                       utils.ignoreExtension(env, answers.theme_slug, 'theme')
-                
+            
                       // Generate new theme
                       wp(`scaffold _s ${answers.theme_slug}`, {
                         verbose: true,
@@ -369,7 +380,9 @@ InstallCommand.prototype.run = function (env) {
                           'author': answers.theme_author,
                           'author_uri': answers.theme_author_uri,
                           'sassify': answers.theme_sassify,
-                          'activate': answers.theme_activate
+                          'activate': answers.theme_activate,
+                          'skip-plugins': true,
+                          'skip-themes': true
                         }
                       })
                       callback(null, answers)
@@ -377,7 +390,8 @@ InstallCommand.prototype.run = function (env) {
                 }
               })
           }
-        })
+        });
+        
       }
     },
     
@@ -415,16 +429,15 @@ InstallCommand.prototype.run = function (env) {
       
       function activatePlugin (answers) {
         // Check if the plugin already exists
-        var exists = wp(`plugin is-installed ${answers.plugin_slug}`, {async: true})
-        exists.on('close', function (code, signal) {
-          if (code === 0) {
+        fs.exists(`${env.cwd}/wp-content/plugins/${answers.plugin_slug}/`, function(exists) {
+          if (exists) {
             console.log('Warning:', `plugin ${answers.plugin_slug} already exists.`)
         
             // Ask for activate the plugin
             enquirer.ask([{type: 'confirm', name: 'activate_plugin', message: 'Activate plugin'}])
               .then(function (answers) {
                 if (answers.activate_plugin) {
-                  var activate = wp(`plugin activate ${answers.plugin_slug}`, {async: true, verbose: true})
+                  var activate = wp(`plugin activate ${answers.plugin_slug}`, {async: true, verbose: true, flags: {'skip-plugins': true, 'skip-themes': true}})
                   activate.on('close', function (code, signal) {
                 
                     // Add custom plugin to wpleasefile
@@ -474,7 +487,9 @@ InstallCommand.prototype.run = function (env) {
                           'plugin_author': answers.plugin_author,
                           'plugin_author_uri': answers.plugin_author_uri,
                           'activate': answers.plugin_activate,
-                          'skip-tests': true
+                          'skip-tests': true,
+                          'skip-plugins': true,
+                          'skip-themes': true
                         }
                       })
                       callback(null, answers)
@@ -484,18 +499,6 @@ InstallCommand.prototype.run = function (env) {
           }
         })
       }
-    },
-  
-    /**
-     * PLUGINS
-     * Install plugins from the list in local
-     * or default wplease.json file
-     */
-    function (inputs, callback) {
-      SyncScript.run(env, 'plugins')
-        .then(res => {
-          callback(null, inputs)
-        })
     },
     
     /**
@@ -518,18 +521,6 @@ InstallCommand.prototype.run = function (env) {
     function (inputs, callback) {
       if (!inputs.keep_db) {
         utils.bot('Cleaning default install...')
-        // Remove default plugins
-        wp('plugin uninstall hello.php', {verbose: true})
-        wp('plugin uninstall akismet', {verbose: true})
-        // Remove default themes
-        if (inputs.generate_theme) {
-          var themes = wp('theme list', {
-            flags: {
-              'status': 'inactive',
-              'format': 'json'
-            }
-          })
-        }
         // Remove default posts
         wp('post delete 1', {verbose: true, flags: {force: true}})
         wp('post delete 2', {verbose: true, flags: {force: true}})
@@ -549,12 +540,14 @@ InstallCommand.prototype.run = function (env) {
           post_type: 'page',
           post_title: 'Home',
           post_author: 1,
-          post_status: 'publish'
+          post_status: 'publish',
+          'skip-plugins': true,
+          'skip-themes': true
         }
       })
       if (env.settings.options) {
         Object.entries(env.settings.options).forEach(function (option) {
-          wp(`option update ${option[0]} "${option[1]}"`, {verbose: true})
+          wp(`option update ${option[0]} "${option[1]}"`, {verbose: true, flags: {'skip-plugins': true, 'skip-themes': true}})
         })
       }
       callback(null, inputs)
@@ -566,7 +559,7 @@ InstallCommand.prototype.run = function (env) {
      */
     function (inputs, callback) {
       utils.bot('Activating permalink structure...')
-      wp('rewrite structure "/%postname%/"', {verbose: true, flags: {hard: true}})
+      wp('rewrite structure "/%postname%/"', {verbose: true, flags: {hard: true, 'skip-plugins': true, 'skip-themes': true}})
       callback(null, inputs)
     },
     
