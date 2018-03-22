@@ -109,25 +109,33 @@ SyncCommand.prototype.run = function (env, type) {
       return new Promise((resolveT, rejectT) => {
         utils.bot('Sync themes...')
         // Install themes filled in wplease.json
-          var i = 0
-        each(env.settings.themes, (theme, next) => {
-          i++
-          if (!theme.startsWith('@')) {
-            console.log(colors.bold(theme))
-            var install = wp(`theme install "${plugin}"`, {async: true, verbose: true, flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}})
-            install.on('close', (code) => {
+        var i = 0
+        if (env.settings.themes.length) {
+          each(env.settings.themes, (theme, next) => {
+            i++
+            if (!theme.startsWith('@')) {
+              console.log(colors.bold(theme))
+              var install = wp(`theme install "${plugin}"`, {
+                async: true,
+                verbose: true,
+                flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}
+              })
+              install.on('close', (code) => {
+                if (env.settings.themes.length === i) {
+                  handleNewThemes(resolveT)
+                }
+                next()
+              })
+            } else {
               if (env.settings.themes.length === i) {
                 handleNewThemes(resolveT)
               }
               next()
-            })
-          } else {
-            if (env.settings.themes.length === i) {
-              handleNewThemes(resolveT)
             }
-            next()
-          }
-        })
+          })
+        } else {
+          handleNewThemes(resolveT)
+        }
       })
     }
   
@@ -217,77 +225,85 @@ SyncCommand.prototype.run = function (env, type) {
         utils.bot('Sync plugins...')
         // Install plugins filled in wplease.json
         var i = 0
-        each(env.settings.plugins, (plugin, next) => {
-          i++
-          if (!plugin.startsWith('@')) {
-            console.log(colors.cyan.bold(plugin))
-            var installed = wp(`plugin is-installed ${plugin}`, {async: true, verbose: true, flags: {'skip-plugins': true, 'skip-themes': true}})
-            installed.on('close', (code) => {
-              // If plugin is installed
-              if (code !== 0) {
-                hookPremiumPlugin(plugin)
-                  .then(hooked => {
-                    if (hooked) {
-                      var install = wp(`plugin install "${hooked}"`, {
-                        async: true,
-                        verbose: true,
-                        flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}
-                      })
-                      install.on('close', (code) => {
-                        if (code !== 0 && hooked === plugin) {
-                          enquirer.ask({
-                            type: 'input',
-                            name: `download_url`,
-                            message: 'Download link (paste url or N to cancel)'
-                          })
-                            .then(function (answers) {
-                              if (answers.download_url === 'N') {
-                                console.log('')
-                                if (env.settings.plugins.length === i) {
-                                  handleNewPlugins(resolveP)
-                                }
-                                next()
-                              } else if (answers.download_url) {
-                                var install2 = wp(`plugin install ${answers.download_url}`, {
-                                  async: true,
-                                  verbose: true,
-                                  flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}
-                                })
-                                install2.on('close', (code) => {
+        if (env.settings.plugins.length) {
+          each(env.settings.plugins, (plugin, next) => {
+            i++
+            if (!plugin.startsWith('@')) {
+              console.log(colors.cyan.bold(plugin))
+              var installed = wp(`plugin is-installed ${plugin}`, {
+                async: true,
+                verbose: true,
+                flags: {'skip-plugins': true, 'skip-themes': true}
+              })
+              installed.on('close', (code) => {
+                // If plugin is installed
+                if (code !== 0) {
+                  hookPremiumPlugin(plugin)
+                    .then(hooked => {
+                      if (hooked) {
+                        var install = wp(`plugin install "${hooked}"`, {
+                          async: true,
+                          verbose: true,
+                          flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}
+                        })
+                        install.on('close', (code) => {
+                          if (code !== 0 && hooked === plugin) {
+                            enquirer.ask({
+                              type: 'input',
+                              name: `download_url`,
+                              message: 'Download link (paste url or N to cancel)'
+                            })
+                              .then(function (answers) {
+                                if (answers.download_url === 'N') {
+                                  console.log('')
                                   if (env.settings.plugins.length === i) {
                                     handleNewPlugins(resolveP)
                                   }
                                   next()
-                                })
-                              } else {
-                                reject2('You must specify a WPML url to download and install it.')
-                              }
-                            })
-                        } else {
-                          if (env.settings.plugins.length === i) {
-                            handleNewPlugins(resolveP)
+                                } else if (answers.download_url) {
+                                  var install2 = wp(`plugin install ${answers.download_url}`, {
+                                    async: true,
+                                    verbose: true,
+                                    flags: {activate: true, 'skip-plugins': true, 'skip-themes': true}
+                                  })
+                                  install2.on('close', (code) => {
+                                    if (env.settings.plugins.length === i) {
+                                      handleNewPlugins(resolveP)
+                                    }
+                                    next()
+                                  })
+                                } else {
+                                  reject2('You must specify a WPML url to download and install it.')
+                                }
+                              })
+                          } else {
+                            if (env.settings.plugins.length === i) {
+                              handleNewPlugins(resolveP)
+                            }
+                            next()
                           }
-                          next()
-                        }
-                      })
-                    }
-                  })
-              }
-              // If plugin is not installed
-              else {
-                if (env.settings.plugins.length === i) {
-                  handleNewPlugins(resolveP)
+                        })
+                      }
+                    })
                 }
-                next()
+                // If plugin is not installed
+                else {
+                  if (env.settings.plugins.length === i) {
+                    handleNewPlugins(resolveP)
+                  }
+                  next()
+                }
+              })
+            } else {
+              if (env.settings.plugins.length === i) {
+                handleNewPlugins(resolveP)
               }
-            })
-          } else {
-            if (env.settings.plugins.length === i) {
-              handleNewPlugins(resolveP)
+              next()
             }
-            next()
-          }
-        })
+          })
+        } else {
+          handleNewPlugins(resolveP)
+        }
       })
     }
     
