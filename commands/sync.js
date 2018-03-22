@@ -108,7 +108,7 @@ SyncCommand.prototype.run = function (env, type) {
     function syncThemes() {
       return new Promise((resolveT, rejectT) => {
         utils.bot('Sync themes...')
-        // Install themes filled in wpleasefile
+        // Install themes filled in wplease.json
           var i = 0
         each(env.settings.themes, (theme, next) => {
           i++
@@ -215,7 +215,7 @@ SyncCommand.prototype.run = function (env, type) {
     function syncPlugins() {
       return new Promise((resolveP, rejectP) => {
         utils.bot('Sync plugins...')
-        // Install plugins filled in wpleasefile
+        // Install plugins filled in wplease.json
         var i = 0
         each(env.settings.plugins, (plugin, next) => {
           i++

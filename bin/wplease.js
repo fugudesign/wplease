@@ -20,7 +20,8 @@ enquirer.register('confirm', require('prompt-confirm'))
 // Create a custom node cli
 var cli = new Liftoff({
   name: 'wplease',
-  configName: 'wplease'
+  configName: 'wplease',
+  extensions: { '.json': null }
 })
 
 // Exit with 0 or 1
@@ -107,7 +108,7 @@ function baseInit (env) {
   // Get the settings
   env.settings = utils.getSettings(env)
   
-  // Chdir before requiring wpleasefile to make sure
+  // Chdir before requiring wplease.json to make sure
   // we let them chdir as needed
   if (process.cwd() !== env.cwd) {
     process.chdir(env.cwd)
