@@ -11,6 +11,7 @@
 # begin WPlease
 # end WPlease
 
+/wordfence-waf.php
 /readme.html
 /index.php
 /xmlrpc.php
@@ -39,6 +40,10 @@ node_modules
 
 # Ignore automatically generated cruft
 .sass-cache
+
+# WP-CLI
+wp-cli.local.yml
+wp-cli.yml
 
 # Logs
 logs
