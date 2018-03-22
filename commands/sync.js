@@ -179,7 +179,7 @@ SyncCommand.prototype.run = function (env, type) {
                   break
             
                 case 'delete':
-                  wp(`theme delete ${theme.name}`, {verbose: true})
+                  wp(`theme delete ${theme.name}`, {verbose: true, flags: {'skip-plugins': true, 'skip-themes': true}})
                   if (themes.length == t) {
                     promiseResolve(true)
                   }
