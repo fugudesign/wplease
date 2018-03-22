@@ -114,7 +114,7 @@ SyncCommand.prototype.run = function (env, type) {
           each(env.settings.themes, (theme, next) => {
             i++
             if (!theme.startsWith('@')) {
-              console.log(colors.bold(theme))
+              bot(`Checking ${theme}...`)
               var install = wp(`theme install "${plugin}"`, {
                 async: true,
                 verbose: true,
@@ -229,7 +229,7 @@ SyncCommand.prototype.run = function (env, type) {
           each(env.settings.plugins, (plugin, next) => {
             i++
             if (!plugin.startsWith('@')) {
-              console.log(colors.cyan.bold(plugin))
+              bot(`Checking ${plugin}...`)
               var installed = wp(`plugin is-installed ${plugin}`, {
                 async: true,
                 verbose: true,
