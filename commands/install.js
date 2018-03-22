@@ -366,7 +366,7 @@ InstallCommand.prototype.run = function (env) {
                   console.log('')
         
                   // Add custom theme to wpleasefile
-                  utils.addThemeToJson(env.cwd, answers.theme_slug, true)
+                  utils.addThemeToJson(env, answers.theme_slug, true)
                     .then(res => {
             
                       // Autoinject ungitignore for theme
