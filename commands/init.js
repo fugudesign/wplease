@@ -8,6 +8,8 @@ var Enquirer = require('enquirer')
 var each = require('sync-each')
 var {COPYFILE_EXCL} = fs.constants
 
+var SyncCommand = require('./sync')
+
 // create a new prompt instance
 var enquirer = new Enquirer()
 enquirer.register('confirm', require('prompt-confirm'))
@@ -45,7 +47,7 @@ InitCommand.prototype.run = function (env) {
                 copyInitFile(template, copy, filename)
                   .then(res => {
                     if(files.length === i) {
-                      resolve(true)
+                      postScript(resolve)
                     }
                     next()
                   })
@@ -53,7 +55,7 @@ InitCommand.prototype.run = function (env) {
                 console.log(`Success: existing ${filename} kept in project.`)
                 console.log('')
                 if(files.length === i) {
-                  resolve(true)
+                  postScript(resolve)
                 }
                 next()
               }
@@ -62,7 +64,7 @@ InitCommand.prototype.run = function (env) {
           copyInitFile(template, copy, filename)
             .then(res => {
               if(files.length === i) {
-                resolve(true)
+                postScript(resolve)
               }
               next()
             })
@@ -75,6 +77,22 @@ InitCommand.prototype.run = function (env) {
         }
       }
     )
+  
+    /**
+     * Actions to run after init script
+     * @param resolve
+     */
+    function postScript (resolve) {
+      var flags = utils.cliFlags()
+      if (flags.sync || flags.s) {
+        SyncCommand.run(env)
+          .then(res => {
+            resolve(true)
+          })
+      } else {
+        resolve(true)
+      }
+    }
     
     // Function to copy template file to destination
     function copyInitFile (template, copy, filename) {
