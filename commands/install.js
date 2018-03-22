@@ -465,7 +465,7 @@ InstallCommand.prototype.run = function (env) {
               },
               {type: 'input', name: 'plugin_author', message: 'Plugin author'},
               {type: 'input', name: 'plugin_author_uri', message: 'Plugin author URI'},
-              {type: 'confirm', name: 'plugin_activate', message: 'Activate theme'}
+              {type: 'confirm', name: 'plugin_activate', message: 'Activate plugin'}
             ])
               .then(function (answers) {
                 if (answers) {
