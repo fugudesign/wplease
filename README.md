@@ -48,7 +48,7 @@ You should install this module as a global module.
 npm install -g wplease
 ```
 
-### Create new Wordpress project
+### Creating new Wordpress project
 
 Create a basic Wordpress install from scratch.
 ```bash
