@@ -522,8 +522,8 @@ InstallCommand.prototype.run = function (env) {
       if (!inputs.keep_db) {
         utils.bot('Cleaning default install...')
         // Remove default posts
-        wp('post delete 1', {verbose: true, flags: {force: true}})
-        wp('post delete 2', {verbose: true, flags: {force: true}})
+        wp('post delete 1', {verbose: true, flags: {force: true, 'skip-plugins': true, 'skip-themes': true}})
+        wp('post delete 2', {verbose: true, flags: {force: true, 'skip-plugins': true, 'skip-themes': true}})
       }
       callback(null, inputs)
     },
