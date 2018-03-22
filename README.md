@@ -21,6 +21,8 @@ With WPlease, in one command line you can:
 
 > Add or remove a theme or a plugin from files and from wplease.json
 
+> Wpleasify (init) an existing Wordpress project repository
+
 > Remove all gitignored files from the project
 
 ## Getting Started
@@ -38,7 +40,7 @@ To build a Wordpress instance with WPlease, you must have a Wordpress operating 
 ### Caution
 > For existing repos, please backup your files and database before using WPlease.
 
-### Installing
+### Installing WPlease
 
 You should install this module as a global module.
 
@@ -46,13 +48,35 @@ You should install this module as a global module.
 npm install -g wplease
 ```
 
-### Usage
+### Create new Wordpress project
 
 Create a basic Wordpress install from scratch.
 ```bash
 mkdir my-project
 cd my-project
 wplease install
+```
+
+### WPleasify existing project
+
+You can turn an existing Wordpress project on for WPlease. This create the required WPlease files and add existing plugins and themes to the wplease.json file.
+Make sure your git repo is clean and all changes commited before using it.
+
+```bash
+cd my-project
+wplease init --sync
+```
+
+You can check your wplease.json file about the plugins and themes. Then you can remove all useless files from your repository.
+
+```bash
+wplease delete
+```
+
+Then commit all changes, you're done!
+```git
+git add --all
+git commit "Remove useless files for WPlease"
 ```
 
 ## Advanced usage
