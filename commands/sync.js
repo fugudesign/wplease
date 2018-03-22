@@ -29,6 +29,8 @@ SyncCommand.prototype.run = function (env, type) {
         type = params[0]
       }
     }
+  
+    utils.bot('Synchronizing...')
     
     if (!fs.existsSync(env.configPath)) {
       enquirer.ask({type: 'confirm', name: 'init', message: 'Initialize project', 'default': false})
@@ -221,7 +223,8 @@ SyncCommand.prototype.run = function (env, type) {
             console.log(colors.cyan.bold(plugin))
             var installed = wp(`plugin is-installed ${plugin}`, {async: true, verbose: true, flags: {'skip-plugins': true, 'skip-themes': true}})
             installed.on('close', (code) => {
-              if (code === 0) {
+              // If plugin is installed
+              if (code !== 0) {
                 hookPremiumPlugin(plugin)
                   .then(hooked => {
                     if (hooked) {
@@ -269,7 +272,9 @@ SyncCommand.prototype.run = function (env, type) {
                       })
                     }
                   })
-              } else {
+              }
+              // If plugin is not installed
+              else {
                 if (env.settings.plugins.length === i) {
                   handleNewPlugins(resolveP)
                 }
