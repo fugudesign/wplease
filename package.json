@@ -25,7 +25,7 @@
     "url": "git+https://github.com/fugudesign/wplease.git"
   },
   "author": "Vincent Lalanne <info@fugu.fr>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/fugudesign/wplease/issues"
   },
