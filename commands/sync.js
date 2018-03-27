@@ -114,7 +114,7 @@ SyncCommand.prototype.run = function (env, type) {
           each(env.settings.themes, (theme, next) => {
             i++
             if (!theme.startsWith('@')) {
-              bot(`Checking ${theme}...`)
+              utils.bot(`Checking ${theme}...`)
               var install = wp(`theme install "${plugin}"`, {
                 async: true,
                 verbose: true,
@@ -229,7 +229,7 @@ SyncCommand.prototype.run = function (env, type) {
           each(env.settings.plugins, (plugin, next) => {
             i++
             if (!plugin.startsWith('@')) {
-              bot(`Checking ${plugin}...`)
+              utils.bot(`Checking ${plugin}...`)
               var installed = wp(`plugin is-installed ${plugin}`, {
                 async: true,
                 verbose: true,
@@ -314,7 +314,8 @@ SyncCommand.prototype.run = function (env, type) {
         var hasVersion = plugin.version
         var isCustom = env.settings.plugins.indexOf(`@${plugin.name}`) > -1
         var isInSettings = env.settings.plugins.indexOf(plugin.name) > -1
-        return hasVersion && !isInSettings && !isCustom
+        var isRepo = env.settings.plugins.filter(p => p.match(`/^https:\\/\\/github\\.com\\/.*\\/${plugin.name}/`))
+        return hasVersion && !isInSettings && !isCustom && !isRepo.length
       })
       var p = 0
       each(plugins, (plugin, next) => {
