@@ -19,6 +19,7 @@
 /.htaccess
 /license.txt
 /readme.html
+/readme.*.html
 /sitemap.xml
 /sitemap.xml.gz
 
